@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp">
+
+    <!-- 视频封面 -->
+    <android.widget.ImageView
+        android:id="@+id/coverImage"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 播放按钮 -->
+    <android.widget.ImageView
+        android:id="@+id/playButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@android:drawable/ic_media_play"
+        android:tint="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="@id/coverImage"
+        app:layout_constraintEnd_toEndOf="@id/coverImage"
+        app:layout_constraintStart_toStartOf="@id/coverImage"
+        app:layout_constraintTop_toTopOf="@id/coverImage" />
+
+    <!-- 视频标题 -->
+    <android.widget.TextView
+        android:id="@+id/title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toStartOf="@id/authorAvatar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/coverImage" />
+
+    <!-- 作者头像 -->
+    <android.widget.ImageView
+        android:id="@+id/authorAvatar"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="8dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/coverImage" />
+
+    <!-- 作者名称 -->
+    <android.widget.TextView
+        android:id="@+id/authorName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="12sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/title" />
+
+    <!-- 播放次数 -->
+    <android.widget.TextView
+        android:id="@+id/playCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@id/authorName"
+        app:layout_constraintStart_toEndOf="@id/authorName"
+        app:layout_constraintTop_toTopOf="@id/authorName" />
+
+    <!-- 视频时长 -->
+    <android.widget.TextView
+        android:id="@+id/duration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:color/black"
+        android:padding="4dp"
+        android:textColor="@android:color/white"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@id/coverImage"
+        app:layout_constraintEnd_toEndOf="@id/coverImage"
+        app:layout_constraintRight_toRightOf="@id/coverImage"
+        app:layout_constraintRight_toLeftOf="@id/coverImage" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="150dp"
+    android:viewportWidth="200"
+    android:viewportHeight="150">
+
+    <!-- Background gradient -->
+    <gradient
+        android:type="linear"
+        android:startColor="#FF6B6B"
+        android:endColor="#4ECDC4"
+        android:angle="135" />
+
+    <!-- Newspaper icon -->
+    <group
+        android:translateX="50"
+        android:translateY="25">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M50,0 L100,0 L100,100 L50,100 Z" />
+        
+        <!-- Newspaper lines -->
+        <path
+            android:fillColor="#FF6B6B"
+            android:pathData="M60,20 L90,20 L90,25 L60,25 Z" />
+        <path
+            android:fillColor="#4ECDC4"
+            android:pathData="M60,35 L90,35 L90,40 L60,40 Z" />
+        <path
+            android:fillColor="#FF6B6B"
+            android:pathData="M60,50 L80,50 L80,55 L60,55 Z" />
+        <path
+            android:fillColor="#4ECDC4"
+            android:pathData="M60,65 L90,65 L90,70 L60,70 Z" />
+            
+        <!-- Date -->
+        <path
+            android:fillColor="#4A90E2"
+            android:pathData="M60,80 L70,80 L70,90 L60,90 Z" />
+    </group>
+    
+    <!-- Camera icon -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,40 C30,34.5 34.5,30 40,30 C45.5,30 50,34.5 50,40 C50,45.5 45.5,50 40,50 C34.5,50 30,45.5 30,40 Z"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"/>
+    <path
+        android:fillColor="#4A90E2"
+        android:pathData="M40,45 C42.8,45 45,42.8 45,40 C45,37.2 42.8,35 40,35 C37.2,35 35,37.2 35,40 C35,42.8 37.2,45 40,45 Z" />
+
+</vector>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/nav_home">
+
+    <!-- 视频Fragment -->
+    <fragment
+        android:id="@+id/nav_video"
+        android:name="com.example.aikotlin.ui.video.VideoListFragment"
+        android:label="视频"
+        tools:layout="@layout/fragment_video_list" />
+    
+    <!-- 微头条Fragment -->
+    <fragment
+        android:id="@+id/nav_micro_news"
+        android:name="com.example.aikotlin.ui.micro.NewsMicroFragment"
+        android:label="微头条"
+        tools:layout="@layout/fragment_micro_news" />
+    
+    <!-- 小视频Fragment -->
+    <fragment
+        android:id="@+id/nav_small_video"
+        android:name="com.example.aikotlin.ui.smallvideo.SmallVideoFragment"
+        android:label="小视频"
+        tools:layout="@layout/fragment_small_video" />
+    
+    <!-- 个人中心Fragment -->
+    <fragment
+        android:id="@+id/nav_profile"
+        android:name="com.example.aikotlin.ui.profile.ProfileFragment"
+        android:label="我的"
+        tools:layout="@layout/fragment_profile" />
+    
+    <!-- 首页 - 新闻列表Fragment -->
+    <fragment
+        android:id="@+id/nav_home"
+        android:name="com.example.aikotlin.ui.news.NewsListFragment"
+        android:label="头条新闻"
+        tools:layout="@layout/fragment_news_list">
+        <action
+            android:id="@+id/action_news_list_to_news_detail"
+            app:destination="@+id/news_detail_fragment" />
+    </fragment>
+    
+    <!-- 新闻详情Fragment -->
+    <fragment
+        android:id="@+id/news_detail_fragment"
+        android:name="com.example.aikotlin.ui.news.NewsDetailFragment"
+        android:label="新闻详情"
+        tools:layout="@layout/fragment_news_detail">
+        <argument
+            android:name="article"
+            app:argType="com.example.aikotlin.model.NewsArticle" />
+    </fragment>
+
+</navigation>

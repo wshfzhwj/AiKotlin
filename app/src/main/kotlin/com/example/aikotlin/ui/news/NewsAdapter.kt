@@ -12,7 +12,7 @@ import com.example.aikotlin.databinding.ItemLoadingMoreBinding
 import com.example.aikotlin.databinding.ItemNewsArticleBinding
 import com.example.aikotlin.model.NewsArticle
 import com.example.aikotlin.model.NewsArticleDiffCallback
-import com.example.aikotlin.util.DateUtils
+import com.example.aikotlin.utils.DateUtils
 import coil.load
 
 // 标记加载中项的常量

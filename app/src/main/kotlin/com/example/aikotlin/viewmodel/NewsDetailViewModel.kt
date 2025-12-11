@@ -1,7 +1,8 @@
 package com.example.aikotlin.viewmodel
 
+import com.example.aikotlin.base.BaseRepository
 import com.example.aikotlin.base.BaseViewModel
 
-class NewsDetailViewModel : BaseViewModel() {
+class NewsDetailViewModel(private val repo: BaseRepository ) : BaseViewModel(repo) {
 
 }

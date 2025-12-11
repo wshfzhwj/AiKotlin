@@ -8,8 +8,12 @@ class NewsLocalDataSource (
     private val newsDao: NewsDao
 ) {
     
-    fun getArticlesByCategory(category: String): Flow<List<NewsArticle>> {
+    fun getArticlesByCategoryByFlow(category: String): Flow<List<NewsArticle>> {
         return newsDao.getArticlesByCategory(category)
+    }
+
+    fun getArticlesByCategoryByList(category: String): List<NewsArticle> {
+        return newsDao.getArticlesByCategoryByList(category)
     }
     
     fun getRecentArticles(limit: Int = 20): Flow<List<NewsArticle>> {

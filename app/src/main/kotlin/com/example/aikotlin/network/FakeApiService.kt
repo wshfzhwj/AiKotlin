@@ -8,6 +8,7 @@ import kotlin.math.min
 
 /**
  * 使用内存数据模拟真实网络请求。
+ * 模拟对返回数据进行加密。
  */
 open class FakeApiService : ApiService {
     
@@ -31,6 +32,7 @@ open class FakeApiService : ApiService {
     ): NewsResponse {
         delay(600)
         val articles = FakeNewsDataStore.searchArticles(query)
+        // 模拟网络层返回加密数据
         return buildPagedResponse(articles, page, pageSize)
     }
     
@@ -57,4 +59,3 @@ open class FakeApiService : ApiService {
         )
     }
 }
-

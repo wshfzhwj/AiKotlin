@@ -1,21 +1,12 @@
-// file: app/src/main/kotlin/com/example/aikotlin/viewmodel/NewsViewModel.kt
 package com.example.aikotlin.viewmodel
 
 import com.example.aikotlin.base.BaseViewModel
-import com.example.aikotlin.data.NewsRepository
 import com.example.aikotlin.model.NewsArticle
+import com.example.aikotlin.repository.NewsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toList
 
-class NewsViewModel(private val repository: NewsRepository) : BaseViewModel() {
+class NewsViewModel(private val repository: NewsRepository) : BaseViewModel(repository) {
 
     private val _newsArticles = MutableStateFlow<List<NewsArticle>>(emptyList())
     val newsArticles: StateFlow<List<NewsArticle>> = _newsArticles
@@ -25,11 +16,10 @@ class NewsViewModel(private val repository: NewsRepository) : BaseViewModel() {
 
     private var currentPage = 1
     private val pageSize = 10
-//    private var selectedCategory = "general"
-    private var selectedCategory = "all"
+    private var selectedCategory = "general"
 
     init {
-        loadNewsArticles()
+        refresh()
     }
 
     fun setCategory(category: String) {
@@ -40,59 +30,37 @@ class NewsViewModel(private val repository: NewsRepository) : BaseViewModel() {
 
     fun refresh() {
         currentPage = 1
-        _hasMoreData.value = true
-        loadNewsArticles()
+        loadNews(isRefresh = true)
     }
 
     fun loadMore() {
-        // 使用 !isLoading.value 保护，防止并发加载
         if (isLoading.value || !hasMoreData.value) return
-
-        execute {
-            val currentArticleList = _newsArticles.value
-            val moreArticles = repository.getNewsByCategory(selectedCategory).first()
-                .drop(currentArticleList.size) // 从完整列表中跳过已加载的部分
-                .take(pageSize)
-
-            if (moreArticles.isNotEmpty()) { // 这里的 isNotEmpty() 现在可以正常工作
-                val updatedList = currentArticleList + moreArticles
-                _newsArticles.value = updatedList
-                currentPage++
-            } else {
-                _hasMoreData.value = false
-            }
-        }
+        currentPage++
+        loadNews(isRefresh = false)
     }
 
+    private fun loadNews(isRefresh: Boolean) {
+        execute(
+            block = { repository.getNewsByCategoryByList(selectedCategory, currentPage, pageSize) },
+            onResult = { newArticles ->
+                _hasMoreData.value = newArticles.size >= pageSize
 
-    private fun loadNewsArticles() {
-        execute {
-            repository.getNewsByCategory(selectedCategory)
-                .catch { e ->
-                    // Flow 内部的 catch 只处理上游异常，但 execute 的 catch 会作为最终保障
-                    mutableErrorMessage.value = "Failed to load articles: ${e.message}"
+                if (isRefresh) {
+                    _newsArticles.value = newArticles
+                } else {
+                    _newsArticles.value += newArticles
                 }
-                .collectLatest { articles ->
-                    // 处理分页
-                    _newsArticles.value = articles.take(pageSize)
-
-                    // 判断是否有更多数据
-                    _hasMoreData.value = articles.size > pageSize
-                    currentPage = 1
-                }
-        }
+            }
+        )
     }
 
     fun searchNews(query: String) {
-        execute {
-            repository.searchNewsAsFlow(query)
-                .catch { e ->
-                    mutableErrorMessage.value = "Search failed: ${e.message}"
-                }
-                .collectLatest { articles ->
-                    _newsArticles.value = articles
-                    _hasMoreData.value = false // 搜索结果不分页
-                }
-        }
+        execute(
+            block = { repository.searchNews(query) },
+            onResult = { searchedArticles ->
+                _newsArticles.value = searchedArticles
+                _hasMoreData.value = false // Search results are not paginated
+            }
+        )
     }
 }

@@ -7,6 +7,7 @@ import androidx.room.Room
 import com.example.aikotlin.database.NewsDatabase
 import com.example.aikotlin.network.ApiClient
 import com.example.aikotlin.network.ApiService
+import com.example.aikotlin.repository.NewsRepository
 import com.example.aikotlin.viewmodel.NewsViewModel
 
 /**

@@ -1,5 +1,6 @@
 package com.example.aikotlin.ui.news
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,14 +14,15 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.aikotlin.base.BaseFragment
-import com.example.aikotlin.data.NewsRepository
+import com.example.aikotlin.repository.NewsRepository
 import com.example.aikotlin.data.ViewModelFactory
 import com.example.aikotlin.databinding.FragmentNewsListBinding
 import com.example.aikotlin.model.NewsArticle
 import com.example.aikotlin.viewmodel.NewsViewModel
 import kotlinx.coroutines.launch
 
-class NewsListFragment : BaseFragment<FragmentNewsListBinding, NewsViewModel>(), CategoryTabLayout.OnCategorySelectedListener {
+class NewsListFragment : BaseFragment<FragmentNewsListBinding, NewsViewModel>(),
+    CategoryTabLayout.OnCategorySelectedListener {
 
     private lateinit var adapter: NewsAdapter
 
@@ -56,7 +58,7 @@ class NewsListFragment : BaseFragment<FragmentNewsListBinding, NewsViewModel>(),
         val layoutManager = binding.newsRecyclerView.layoutManager as LinearLayoutManager
         binding.newsRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)             
+                super.onScrolled(recyclerView, dx, dy)
                 val totalItemCount = layoutManager.itemCount
                 val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
 
@@ -77,7 +79,8 @@ class NewsListFragment : BaseFragment<FragmentNewsListBinding, NewsViewModel>(),
                 launch {
                     viewModel.newsArticles.collect { articles ->
                         adapter.submitList(articles)
-                        binding.emptyStateText.visibility = if (articles.isEmpty() && !viewModel.isLoading.value) View.VISIBLE else View.GONE
+                        binding.emptyStateText.visibility =
+                            if (articles.isEmpty() && !viewModel.isLoading.value) View.VISIBLE else View.GONE
                     }
                 }
 
@@ -104,7 +107,7 @@ class NewsListFragment : BaseFragment<FragmentNewsListBinding, NewsViewModel>(),
                         }
                     }
                 }
-                
+
                 launch {
                     viewModel.errorMessage.collect { error ->
                         error?.let {
@@ -123,8 +126,7 @@ class NewsListFragment : BaseFragment<FragmentNewsListBinding, NewsViewModel>(),
     }
 
     override fun onCategorySelected(categoryId: String, categoryName: String) {
-//        viewModel.setCategory(categoryId)
-        viewModel.setCategory("all")
+        viewModel.setCategory(categoryId)
     }
 
 }

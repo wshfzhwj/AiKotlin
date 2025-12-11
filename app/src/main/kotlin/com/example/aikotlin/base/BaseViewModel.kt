@@ -1,14 +1,15 @@
-// file: app/src/main/kotlin/com/example/aikotlin/base/BaseViewModel.kt
 package com.example.aikotlin.base
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.CoroutineScope
+import com.example.aikotlin.repository.NewsRepository
+import com.example.aikotlin.repository.ResultState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
-abstract class BaseViewModel : ViewModel() {
+abstract class BaseViewModel(private val repo: BaseRepository) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -17,26 +18,36 @@ abstract class BaseViewModel : ViewModel() {
     val errorMessage: StateFlow<String?> = mutableErrorMessage
 
     /**
-     * 执行一个协程任务，并自动管理加载状态和异常。
-     * @param block 将要执行的挂起函数。
+     * Executes a suspend function (e.g., a network call) by wrapping it with safeApiCall,
+     * and automatically handles the UI state (loading, error, success).
+     *
+     * @param block The suspend function to be executed.
+     * @param onResult An optional callback to handle the successful result data.
      */
-    protected fun execute(block: suspend CoroutineScope.() -> Unit) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            mutableErrorMessage.value = null // 开始新任务前清除旧错误
-            try {
-                block()
-            } catch (e: Exception) {
-                // 在这里可以添加更复杂的错误处理逻辑，例如区分不同类型的异常
-                mutableErrorMessage.value = "An error occurred: ${e.message}"
-            } finally {
-                _isLoading.value = false
-            }
-        }
+    protected fun <T> execute(
+        block: suspend () -> T,
+        onResult: (T) -> Unit = {}
+    ) {
+        repo.safeApiCall(block)
+            .onEach { result ->
+                when (result) {
+                    is ResultState.Loading -> {
+                        _isLoading.value = true
+                    }
+                    is ResultState.Success -> {
+                        _isLoading.value = false
+                        onResult(result.data)
+                    }
+                    is ResultState.Error -> {
+                        _isLoading.value = false
+                        mutableErrorMessage.value = result.exception.message ?: "An unknown error occurred"
+                    }
+                }
+            }.launchIn(viewModelScope)
     }
 
     /**
-     * 清除错误信息。
+     * Clears the error message.
      */
     fun clearError() {
         mutableErrorMessage.value = null

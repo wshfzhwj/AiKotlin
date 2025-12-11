@@ -23,7 +23,7 @@ class CategoryTabLayout @JvmOverloads constructor(
     
     // 默认分类列表
     private val defaultCategories = listOf(
-        NewsCategory("all", "推荐", android.R.drawable.ic_menu_mylocation),
+        NewsCategory("general", "推荐", android.R.drawable.ic_menu_mylocation),
         NewsCategory("tech", "科技", android.R.drawable.ic_menu_manage),
         NewsCategory("finance", "财经", android.R.drawable.ic_menu_agenda),
         NewsCategory("sports", "体育", android.R.drawable.ic_menu_sort_by_size),

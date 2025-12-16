@@ -40,20 +40,4 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
         return ActivityMainBinding.inflate(layoutInflater)
     }
 
-    override fun <T : ViewModel> createViewModel(activity: FragmentActivity?, cls: Class<T>?): T {
-        if (cls!!.isAssignableFrom(MainViewModel::class.java)) {
-            // 如果是 NewsViewModel，我们就知道如何创建它
-            @Suppress("UNCHECKED_CAST")
-            return MainViewModel(MainRepository()) as T
-        }
-
-        // if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
-        //     @Suppress("UNCHECKED_CAST")
-        //     return MainViewModel(newsRepository) as T
-        // }
-
-        // 如果是未知的 ViewModel 类型，抛出异常
-        throw IllegalArgumentException("Unknown ViewModel class: ${cls.name}")
-    }
-
 }

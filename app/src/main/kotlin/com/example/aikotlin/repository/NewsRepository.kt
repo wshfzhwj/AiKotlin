@@ -31,7 +31,7 @@ class NewsRepository(
         NewsCategory("science", "科学", 0)
     )
 
-    fun getNewsByCategoryByFlow(category: String, page: Int = 1, pageSize: Int = 20) = flow {
+    suspend fun getNewsByCategoryByFlow(category: String, page: Int = 1, pageSize: Int = 20) = flow {
         emit(ResultState.Loading)
         val cache = localDataSource.getArticlesByCategoryByList(category)
         emit(ResultState.Success(cache))
@@ -61,9 +61,14 @@ class NewsRepository(
                     }
             } catch (e: Exception) {
                 send(ResultState.Error(e, resolveError(e)))
-                Log.e("NewsRepository", "Failed to fetch from network for category: $category", e)
             }
         }.flowOn(Dispatchers.IO)
+
+
+    suspend fun queryDBByCategory(category: String) :  Flow<List<NewsArticle>>{
+        return localDataSource.getArticlesByCategoryByFlow(category)
+    }
+
 
 
     suspend fun getNewsByCategoryBySuper(
@@ -71,7 +76,6 @@ class NewsRepository(
         page: Int = 1,
         pageSize: Int = 20
     ): Flow<ResultState<List<NewsArticle>>> {
-        Log.e("NewsViewModel", "NewsRepository getNewsByCategoryBySuper")
 //        return networkBoundResourceFlowGPT(
 //            queryFromDb = { localDataSource.getArticlesByCategoryByFlow(category) },
 //            shouldFetch = { cachedArticles -> cachedArticles == null || cachedArticles.isEmpty() },
@@ -92,26 +96,26 @@ class NewsRepository(
 //            }
 //        ).flowOn(Dispatchers.IO)
 
-        return fetchDataIncremental(
-            queryFromDb = { localDataSource.getArticlesByCategoryByFlow(category) },
-            shouldFetch = { cachedArticles -> cachedArticles == null || cachedArticles.isEmpty() },
-            fetchNetwork = { remoteDataSource.getTopHeadlines(category, page, pageSize) },
-            saveCallResult = { articles ->
-                val articlesWithCategory = articles.map { it.copy(category = category) }
-                localDataSource.saveArticles(articlesWithCategory)
-            }
-        ).flowOn(Dispatchers.IO)
-
-//        return networkBoundResourceFlowEmitAll(
+//        return fetchDataIncremental(
 //            queryFromDb = { localDataSource.getArticlesByCategoryByFlow(category) },
 //            shouldFetch = { cachedArticles -> cachedArticles == null || cachedArticles.isEmpty() },
 //            fetchNetwork = { remoteDataSource.getTopHeadlines(category, page, pageSize) },
 //            saveCallResult = { articles ->
 //                val articlesWithCategory = articles.map { it.copy(category = category) }
 //                localDataSource.saveArticles(articlesWithCategory)
-//            },
-//            typeMap = {it}
+//            }
 //        ).flowOn(Dispatchers.IO)
+
+        return networkBoundResourceFlowEmitAll(
+            queryFromDb = { queryDBByCategory(category) },
+            shouldFetch = { cachedArticles -> cachedArticles == null || cachedArticles.isEmpty() },
+            fetchNetwork = { remoteDataSource.getTopHeadlines(category, page, pageSize) },
+            saveCallResult = { articles ->
+                val articlesWithCategory = articles.map { it.copy(category = category) }
+                localDataSource.saveArticles(articlesWithCategory)
+            },
+            typeMap = {it}
+        ).flowOn(Dispatchers.IO)
 
 //        return networkBoundResourceFlow(
 //            queryFromDb = { localDataSource.getArticlesByCategoryByFlow(category) },

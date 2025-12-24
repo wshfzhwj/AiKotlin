@@ -1,6 +1,8 @@
 package com.example.aikotlin
 
 import android.os.Bundle
+import android.os.Handler
+import android.util.Log
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.navigation.ui.setupWithNavController
@@ -11,6 +13,7 @@ import com.example.aikotlin.databinding.ActivityMainBinding
 import com.example.aikotlin.repository.MainRepository
 import com.example.aikotlin.viewmodel.MainViewModel
 import com.example.aikotlin.viewmodel.NewsViewModel
+import okhttp3.internal.http2.Http2Reader
 
 class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,6 +27,10 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
 
         // 设置顶部的Toolbar
         setSupportActionBar(binding.toolbar)
+    }
+
+    override fun onResume() {
+        super.onResume()
     }
 
     private fun setUpDataBase() {

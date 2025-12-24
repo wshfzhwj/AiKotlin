@@ -18,14 +18,7 @@ class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory
 
     private val newsRepository by lazy {
         val apiService = ApiClient.apiService
-        val newsDatabase = Room.databaseBuilder(
-            context.applicationContext,
-            NewsDatabase::class.java,
-            "news_database"
-        )
-            .fallbackToDestructiveMigration()
-            .build()
-
+        val newsDatabase = NewsDatabase.getDatabase(context.applicationContext)
         val newsRemoteDataSource = NewsRemoteDataSource(apiService)
         val newsLocalDataSource = NewsLocalDataSource(newsDatabase.newsDao())
         NewsRepository(newsRemoteDataSource, newsLocalDataSource)

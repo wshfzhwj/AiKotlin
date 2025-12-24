@@ -6,158 +6,107 @@ import com.example.aikotlin.base.BaseViewModel
 import com.example.aikotlin.model.NewsArticle
 import com.example.aikotlin.repository.NewsRepository
 import com.example.aikotlin.repository.ResultState
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class NewsViewModel(private val repository: NewsRepository) : BaseViewModel() {
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
+    // 创建一个私有的、可变的SharedFlow用于发送一次性事件
+    private val _uiEvents = MutableSharedFlow<UiEvent>()
 
-    protected val mutableErrorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = mutableErrorMessage
-    private val _newsArticles = MutableStateFlow<List<NewsArticle>>(emptyList())
-    val newsArticles: StateFlow<List<NewsArticle>> = _newsArticles
+    // 暴露一个不可变的、公开的SharedFlow给UI层订阅
+    val uiEvents: SharedFlow<UiEvent> = _uiEvents.asSharedFlow()
 
-    private val _hasMoreData = MutableStateFlow(true)
-    val hasMoreData: StateFlow<Boolean> = _hasMoreData
-
-    private var currentPage = 1
     private val pageSize = 10
-    private var selectedCategory = "general"
-    private var newsJob: Job? = null
+    private val requestFlow = MutableStateFlow(NewsRequest("general", "", 1, true))
 
-    init {
-        refresh()
-    }
+    val uiState: StateFlow<NewsUiState> =
+        requestFlow.flatMapLatest { request ->
+            repository.getNewsByCategoryBySuper(request.category, request.page, pageSize)
+        }.map { result -> // 将ResultState映射为UI状态
+                val currentState = uiState.value // 获取旧状态
+                when (result) {
+                    is ResultState.Loading -> currentState.copy(isLoading = requestFlow.value.isRefresh)
+                    is ResultState.Success -> {
+                        val newArticles = result.data
+                        val articles = if (requestFlow.value.isRefresh) {
+                            newArticles
+                        } else {
+                            val currentIds = currentState.articles.map { it.url }.toSet()
+                            currentState.articles + newArticles.filter { !currentIds.contains(it.url) }
+                        }
+                        currentState.copy(
+                            isLoading = false,
+                            articles = articles,
+                            hasMoreData = newArticles.size >= pageSize
+                        )
+                    }
+
+                    is ResultState.Error -> {
+                        _uiEvents.emit(UiEvent.ShowToast(result.message))
+                        currentState.copy(isLoading = false)
+                    }
+                }
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000), // UI在后台5秒后停止收集
+                initialValue = NewsUiState() // 初始UI状态
+            )
+
 
     fun setCategory(category: String) {
-        if (selectedCategory == category) return
-        selectedCategory = category
-        refresh()
+        // 如果分类没变，则不执行任何操作
+        if (requestFlow.value.category == category) return
+        requestFlow.value = requestFlow.value.copy(category = category, page = 1, isRefresh = true)
     }
 
     fun refresh() {
-        currentPage = 1
-        newsJob?.cancel() // Cancel any ongoing job before starting a new one
-        loadNews(isRefresh = true)
+        // 刷新就是用当前的分类，重置页码为1
+        requestFlow.value = requestFlow.value.copy(page = 1, isRefresh = true)
     }
+
 
     fun loadMore() {
-        if (isLoading.value || !hasMoreData.value) return
-        currentPage++
-        loadNews(isRefresh = false)
-    }
-
-
-    private fun loadNews(isRefresh: Boolean){
-//        loadNewsByFlow(isRefresh)
-        loadNewsBySuper(isRefresh)
-//        loadNewsByChannel(isRefresh)
-    }
-
-
-    private fun loadNewsBySuper(isRefresh: Boolean) {
-        newsJob = viewModelScope.launch {
-            repository.getNewsByCategoryBySuper(selectedCategory, currentPage, pageSize)
-                .collect { result->
-                    when(result){
-                        is ResultState.Loading -> {
-                            if (isRefresh) { // Only show full-screen loading on refresh
-                                _isLoading.value = true
-                            }
-                        }
-                        is ResultState.Success -> {
-                            Log.e("NewsViewModel", "selectedCategory $selectedCategory")
-                            Log.e("NewsViewModel", "result.data ${result.data}")
-                            _isLoading.value = false
-                            val newArticles = result.data
-                            _hasMoreData.value = newArticles.size >= pageSize
-                            if (isRefresh) {
-                                _newsArticles.value = newArticles
-                            } else {
-                                // Prevent duplicates by ensuring the new articles are not already in the list
-                                val currentIds = _newsArticles.value.map { it.url }.toSet()
-                                val uniqueNewArticles = newArticles.filter { !currentIds.contains(it.url) }
-                                _newsArticles.value += uniqueNewArticles
-                            }
-                        }
-                        is ResultState.Error -> {
-                            _isLoading.value = false
-                            mutableErrorMessage.value = result.message
-                        }
-                    }
-                }
-        }
-    }
-
-    private fun loadNewsByFlow(isRefresh: Boolean) {
-        viewModelScope.launch {
-            repository.getNewsByCategoryByFlow(selectedCategory, currentPage, pageSize)
-                .collect { result->
-                    when(result){
-                     is ResultState.Loading -> {
-                         _isLoading.value = true
-                     }
-                     is ResultState.Success -> {
-                         Log.e("NewsViewModel", "loadNews Success: ${result.data}")
-                         _isLoading.value = false
-                         val newArticles = result.data
-                         _hasMoreData.value = newArticles.size >= pageSize
-                         if (isRefresh) {
-                             _newsArticles.value = newArticles
-                         } else {
-                             _newsArticles.value += newArticles
-                         }
-                     }
-                        is ResultState.Error -> {
-                            _isLoading.value = false
-                            mutableErrorMessage.value = result.message
-                        }
-                    }
-                }
-        }
-    }
-
-    private fun loadNewsByChannel(isRefresh: Boolean) {
-        viewModelScope.launch {
-            repository.getNewsByCategoryByChannelFlow(selectedCategory, currentPage, pageSize)
-                .collect { result->
-                    when(result){
-                        is ResultState.Loading -> {
-                            _isLoading.value = true
-                        }
-                        is ResultState.Success -> {
-                            Log.e("NewsViewModel", "loadNews Success: ${result.data}")
-                            _isLoading.value = false
-                            val newArticles = result.data
-                            _hasMoreData.value = newArticles.size >= pageSize
-                            if (isRefresh) {
-                                _newsArticles.value = newArticles
-                            } else {
-                                _newsArticles.value += newArticles
-                            }
-                        }
-                        is ResultState.Error -> {
-                            _isLoading.value = false
-                            mutableErrorMessage.value = result.message
-                        }
-                    }
-                }
-        }
+        if (uiState.value.isLoading || !uiState.value.hasMoreData) return
+        // 加载更多就是页码+1，并且不是刷新
+        requestFlow.value =
+            requestFlow.value.copy(page = requestFlow.value.page + 1, isRefresh = false, keyWords = "")
     }
 
     fun searchNews(query: String) {
-        viewModelScope.launch {
-            repository.searchNewsAsFlow(query).collect { searchedArticles ->
-                _newsArticles.value = searchedArticles
-                _hasMoreData.value = false // Search results are not paginated
-            }
-        }
+        requestFlow.value = requestFlow.value.copy(keyWords = query)
     }
+}
 
-    fun clearError() {
-        mutableErrorMessage.value = null
-    }
+// 可以放在 NewsViewModel文件的顶部
+private data class NewsRequest(
+    val category: String,
+    val keyWords: String,
+    val page: Int,
+    val isRefresh: Boolean
+)
+
+// 定义一个UI状态数据类
+data class NewsUiState(
+    val isLoading: Boolean = false,
+    val articles: List<NewsArticle> = emptyList(),
+    val errorMessage: String? = null,
+    val hasMoreData: Boolean = true
+)
+// 定义UI事件的密封类
+sealed class UiEvent {
+    data class ShowToast(val message: String) : UiEvent()
 }

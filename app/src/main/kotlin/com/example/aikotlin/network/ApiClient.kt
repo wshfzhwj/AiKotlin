@@ -69,9 +69,4 @@ object ApiClient {
         // 使用支持Flow的模拟API服务
         FlowFakeApiService()
     }
-    
-    // 创建真实的Retrofit API服务
-    private val realApiService: ApiService by lazy {
-        retrofit.create(ApiService::class.java)
-    }
 }

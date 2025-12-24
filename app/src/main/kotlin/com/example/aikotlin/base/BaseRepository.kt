@@ -41,7 +41,7 @@ abstract class BaseRepository {
     }.flowOn(Dispatchers.IO)
 
     // 简单的错误解析示例
-    protected fun resolveError(e: Exception): String {
+     fun resolveError(e: Exception): String {
         return when (e) {
             is java.net.SocketTimeoutException -> "网络连接超时"
             is java.net.UnknownHostException -> "无网络连接"
@@ -146,17 +146,13 @@ abstract class BaseRepository {
         crossinline typeMap: (RequestType) -> ResultType
     ): Flow<ResultState<ResultType>> = flow {
         try {
-            Log.e("NewsViewModel", "BaseRepository networkBoundResourceFlowEmitAll")
             // 1. 发射 Loading
             emit(ResultState.Loading)
 //         2. 先查缓存
 //         first() 会挂起直到获取到数据库的当前最新值
 //         注意：这里不用 collect，因为我们只取一次当前状态来判断是否需要请求网络
             val dbData = queryFromDb().first()
-            Log.e("NewsViewModel", "queryFromDb dbData = $dbData")
-            emit(ResultState.Success(dbData))
             // 需要请求：先发射当前的缓存数据（让用户先看着旧数据，别显示空白）
-            Log.e("NewsViewModel", "BaseRepository emit(ResultState.Success(dbData)) $dbData")
             // 3. 判断是否需要请求网络
             if (shouldFetch(dbData)) {
                 emit(ResultState.Success(dbData))
@@ -165,7 +161,6 @@ abstract class BaseRepository {
                     val remoteData = fetchNetwork()
                     // 3.3 保存到数据库 (Room 会自动通知 queryFromDb 的观察者)
                     saveCallResult(remoteData)
-                    Log.e("NewsViewModel", "BaseRepository saveCallResult done")
                 } catch (e: Exception) {
                     // 3.4 网络失败：发射错误，但数据依然是缓存数据
                     emit(ResultState.Error(e, resolveError(e)))
@@ -173,10 +168,8 @@ abstract class BaseRepository {
             } else {
 
             }
-            Log.e("NewsViewModel", "BaseRepository emitAll")
             emitAll(queryFromDb().map { ResultState.Success(it) })
         } catch (e: Exception) {
-            Log.e("NewsViewModel", "e = $e")
             emit(ResultState.Error(e, resolveError(e)))
         }
 
@@ -200,7 +193,6 @@ abstract class BaseRepository {
         crossinline shouldFetch: (ResultType) -> Boolean = { true },
         crossinline typeMap: (RequestType) -> ResultType
     ): Flow<ResultState<ResultType>> = flow {
-        Log.e("NewsViewModel", "BaseRepository networkBoundResource")
         // 1. 发射 Loading
         emit(ResultState.Loading)
 //         2. 先查缓存
@@ -209,7 +201,6 @@ abstract class BaseRepository {
         val dbData = queryFromDb().first()
         // 需要请求：先发射当前的缓存数据（让用户先看着旧数据，别显示空白）
         emit(ResultState.Success(dbData))
-        Log.e("NewsViewModel", "BaseRepository emit(ResultState.Success(dbData)) $dbData")
         // 3. 判断是否需要请求网络
         if (shouldFetch(dbData)) {
             try {
@@ -248,7 +239,6 @@ abstract class BaseRepository {
                 .collect { dbData ->
                     // 发射数据库数据
                     send(ResultState.Success(dbData))
-                    Log.e("NewsViewModel", "BaseRepository queryFromDb collect $dbData")
                     // 如果应该从API更新
                     if (shouldFetch(dbData)) {
                         try {
@@ -294,7 +284,6 @@ abstract class BaseRepository {
         // 2. 启动收集数据库的逻辑 (这是唯一的一次订阅)
         // 这里的 collect 会一直运行，直到外部协程取消
         queryFromDb().collect { dbData ->
-            Log.e("NewsViewModel", "BaseRepository queryFromDb $dbData")
             // 3. 总是第一时间把数据库的数据发射出去 (SSOT)
             send(ResultState.Success(dbData))
             // 4. 判断是否是第一次数据，且需要网络请求
@@ -307,12 +296,10 @@ abstract class BaseRepository {
                     try {
                         val remoteData = fetchNetwork()
                         saveCallResult(remoteData)
-                        Log.e("NewsViewModel", "saveCallResult")
                         // 保存后，Room 会自动通知上面的 collect 收到新数据，从而再次 send(Success)
                     } catch (e: Exception) {
                         // 网络失败，发射 Error，但注意：
                         // 此时流并没有断，用户依然能看到之前的缓存数据 (dbData)
-                        Log.e("NewsViewModel", "saveCallResult error")
                         send(ResultState.Error(e, resolveError(e)))
                     }
                 }

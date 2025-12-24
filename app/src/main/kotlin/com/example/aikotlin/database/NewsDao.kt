@@ -20,7 +20,7 @@ interface NewsDao {
     fun getArticlesByCategory(category: String): Flow<List<NewsArticle>>
 
     @Query("SELECT * FROM news_articles WHERE category = :category ORDER BY publishedAt DESC")
-    fun getArticlesByCategoryByList(category: String): List<NewsArticle>
+    fun getArticlesByCategoryAsList(category: String): List<NewsArticle>
 
     @Query("SELECT * FROM news_articles ORDER BY publishedAt DESC LIMIT :limit")
     fun getRecentArticles(limit: Int = 20): Flow<List<NewsArticle>>

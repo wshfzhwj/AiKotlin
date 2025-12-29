@@ -6,58 +6,36 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.aikotlin.R
+import coil.load
+import com.example.aikotlin.databinding.ItemVideoBinding
+import com.example.aikotlin.model.Video
 
-// 视频数据类
-data class VideoItem(
-    val id: String,
-    val title: String,
-    val coverUrl: String,
-    val playCount: String,
-    val duration: String,
-    val authorName: String,
-    val authorAvatar: String
-)
-
-class VideoAdapter(private val context: Context) : ListAdapter<VideoItem, VideoAdapter.VideoViewHolder>(VideoDiffCallback()) {
-
-    class VideoViewHolder(itemView: android.view.View) : RecyclerView.ViewHolder(itemView) {
-        val videoTitle: android.widget.TextView = itemView.findViewById(R.id.videoTitle)
-        val videoCover: android.widget.ImageView = itemView.findViewById(R.id.videoCover)
-        val playCount: android.widget.TextView = itemView.findViewById(R.id.playCount)
-        val duration: android.widget.TextView = itemView.findViewById(R.id.duration)
-        val authorName: android.widget.TextView = itemView.findViewById(R.id.authorName)
-        val authorAvatar: android.widget.ImageView = itemView.findViewById(R.id.authorAvatar)
-    }
+class VideoAdapter(private val context: Context) : ListAdapter<Video, VideoAdapter.VideoViewHolder>(VideoDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VideoViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_video, parent, false)
-        return VideoViewHolder(view)
+        val binding = ItemVideoBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return VideoViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: VideoViewHolder, position: Int) {
-        val video = getItem(position)
-        holder.videoTitle.text = video.title
-        holder.playCount.text = video.playCount
-        holder.duration.text = video.duration
-        holder.authorName.text = video.authorName
-        
-        // 使用占位图代替实际图片加载
-        holder.videoCover.setImageResource(R.drawable.ic_placeholder_video)
-        holder.authorAvatar.setImageResource(R.drawable.ic_placeholder_avatar)
-        
-        // 点击事件
-        holder.itemView.setOnClickListener {
-            // TODO: 跳转到视频播放页面
+        holder.bind(getItem(position))
+    }
+
+    inner class VideoViewHolder(private val binding: ItemVideoBinding) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(video: Video) {
+            binding.videoTitleText.text = video.title
+            binding.videoCoverImage.load(video.coverUrl) {
+                crossfade(true)
+            }
         }
     }
 
-    class VideoDiffCallback : DiffUtil.ItemCallback<VideoItem>() {
-        override fun areItemsTheSame(oldItem: VideoItem, newItem: VideoItem): Boolean {
+    private class VideoDiffCallback : DiffUtil.ItemCallback<Video>() {
+        override fun areItemsTheSame(oldItem: Video, newItem: Video): Boolean {
             return oldItem.id == newItem.id
         }
 
-        override fun areContentsTheSame(oldItem: VideoItem, newItem: VideoItem): Boolean {
+        override fun areContentsTheSame(oldItem: Video, newItem: Video): Boolean {
             return oldItem == newItem
         }
     }

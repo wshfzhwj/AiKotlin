@@ -65,9 +65,3 @@ data class NewsResponse(
     val totalResults: Int,
     val articles: List<NewsArticle>
 )
-
-data class NewsCategory(
-    val id: String,
-    val name: String,
-    val iconResId: Int
-)

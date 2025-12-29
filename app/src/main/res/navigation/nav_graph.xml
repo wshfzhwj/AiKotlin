@@ -19,13 +19,6 @@
         android:label="微头条"
         tools:layout="@layout/fragment_micro_news" />
     
-    <!-- 小视频Fragment -->
-    <fragment
-        android:id="@+id/nav_small_video"
-        android:name="com.example.aikotlin.ui.smallvideo.SmallVideoFragment"
-        android:label="小视频"
-        tools:layout="@layout/fragment_small_video" />
-    
     <!-- 个人中心Fragment -->
     <fragment
         android:id="@+id/nav_profile"

@@ -5,7 +5,7 @@ import com.example.aikotlin.base.BaseRepository
 import com.example.aikotlin.data.NewsLocalDataSource
 import com.example.aikotlin.data.NewsRemoteDataSource
 import com.example.aikotlin.model.NewsArticle
-import com.example.aikotlin.model.NewsCategory
+import com.example.aikotlin.model.Category
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -21,15 +21,16 @@ class NewsRepository(
     private val remoteDataSource: NewsRemoteDataSource,
     private val localDataSource: NewsLocalDataSource
 ) : BaseRepository() {
-    val newsCategories = listOf(
-        NewsCategory("general", "综合", 0),
-        NewsCategory("business", "财经", 0),
-        NewsCategory("technology", "科技", 0),
-        NewsCategory("entertainment", "娱乐", 0),
-        NewsCategory("sports", "体育", 0),
-        NewsCategory("health", "健康", 0),
-        NewsCategory("science", "科学", 0)
-    )
+    val newsCategories: List<Category>
+        get() = listOf(
+            Category("general", "综合"),
+            Category("business", "财经"),
+            Category("technology", "科技"),
+            Category("entertainment", "娱乐"),
+            Category("sports", "体育"),
+            Category("health", "健康"),
+            Category("science", "科学")
+        )
 
     suspend fun getNewsByCategoryByFlow(category: String, page: Int = 1, pageSize: Int = 20) = flow {
         emit(ResultState.Loading)
@@ -73,6 +74,7 @@ class NewsRepository(
 
     suspend fun getNewsByCategoryBySuper(
         category: String,
+        query:String,
         page: Int = 1,
         pageSize: Int = 20
     ): Flow<ResultState<List<NewsArticle>>> {
@@ -105,7 +107,6 @@ class NewsRepository(
 //                localDataSource.saveArticles(articlesWithCategory)
 //            }
 //        ).flowOn(Dispatchers.IO)
-
         return networkBoundResourceFlowEmitAll(
             queryFromDb = { queryDBByCategory(category) },
             shouldFetch = { cachedArticles -> cachedArticles == null || cachedArticles.isEmpty() },

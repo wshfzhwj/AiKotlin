@@ -1,0 +1,1 @@
+本项目严格遵循 MVVM 架构；UI 必须使用 XML和 Material 3；所有字符串必须存放在 strings.xml 中；禁止使用 LiveData，统一使用 StateFlow

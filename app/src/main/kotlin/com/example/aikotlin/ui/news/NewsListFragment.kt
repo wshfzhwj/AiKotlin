@@ -1,20 +1,20 @@
 package com.example.aikotlin.ui.news
 
-import android.util.Log
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.aikotlin.R
 import com.example.aikotlin.base.BaseFragment
-import com.example.aikotlin.repository.NewsRepository
+import com.example.aikotlin.data.FakeNewsDataProvider
 import com.example.aikotlin.data.ViewModelFactory
 import com.example.aikotlin.databinding.FragmentNewsListBinding
 import com.example.aikotlin.model.NewsArticle
@@ -53,10 +53,12 @@ class NewsListFragment : BaseFragment<FragmentNewsListBinding, NewsViewModel>(),
         }
 
         // Configure CategoryTabLayout
+        binding.categoryTabLayout.setCategories(FakeNewsDataProvider.getCategories())
         binding.categoryTabLayout.setOnCategorySelectedListener(this)
     }
 
     override fun setupListeners() {
+        // RecyclerView scroll listener for pagination
         val layoutManager = binding.newsRecyclerView.layoutManager as LinearLayoutManager
         binding.newsRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -71,6 +73,48 @@ class NewsListFragment : BaseFragment<FragmentNewsListBinding, NewsViewModel>(),
                 ) {
                     viewModel.loadMore()
                 }
+            }
+        })
+
+        // SearchView listeners
+        setupSearch()
+    }
+
+    private fun setupSearch() {
+        val searchItem = binding.toolbar.menu.findItem(R.id.action_search)
+        val searchView = searchItem.actionView as? SearchView
+
+        searchView?.let {
+            it.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(query: String?): Boolean {
+                    // When user submits the search
+                    if (!query.isNullOrBlank()) {
+                        // Let the ViewModel handle the search logic
+                        viewModel.searchNews(query)
+                        it.clearFocus() // Hide keyboard and collapse the view
+                    }
+                    return true
+                }
+
+                override fun onQueryTextChange(newText: String?): Boolean {
+                    // Not used for now, can be implemented for real-time search
+                    return true
+                }
+            })
+        }
+
+        // Add a listener to refresh the list when the search is closed
+        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
+                // Called when search view is expanded
+                return true // Return true to allow expanding
+            }
+
+            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                // Called when search view is collapsed
+                // Refresh the list to show the original data for the selected category
+                viewModel.refresh()
+                return true // Return true to allow collapsing
             }
         })
     }

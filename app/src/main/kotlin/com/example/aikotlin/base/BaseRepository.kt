@@ -71,7 +71,6 @@ abstract class BaseRepository {
         }
     ): Flow<ResultState<T>> = flow {
         try {
-            Log.e("NewsViewModel", "BaseRepository networkBoundResourceFlowGPT")
             // 1. 发射 Loading
             emit(ResultState.Loading)
 //         2. 先查缓存
@@ -79,10 +78,8 @@ abstract class BaseRepository {
 //         注意：这里不用 collect，因为我们只取一次当前状态来判断是否需要请求网络
             val dbData = queryFromDb().firstOrNull()
             // 需要请求：先发射当前的缓存数据（让用户先看着旧数据，别显示空白）
-            Log.e("NewsViewModel", "BaseRepository emit(ResultState.Success(dbData)) $dbData")
             // 3. 判断是否需要请求网络
             if (dbData != null && !shouldFetch(dbData)) {
-                Log.e("NewsViewModel", "1 dbData")
                 emit(ResultState.Success(dbData))
                 return@flow
             }
@@ -94,11 +91,9 @@ abstract class BaseRepository {
             } catch (e: Exception) {
                 // 3.4 网络失败：发射错误，但数据依然是缓存数据
                 if (dbData != null) {
-                    Log.e("NewsViewModel", "remoteData 2 dbData")
                     emit(ResultState.Success(dbData))
                     return@flow
                 } else {
-                    Log.e("NewsViewModel", "remoteData 3 Error")
                     emit(ResultState.Error(e, resolveError(e)))
                 }
             }
@@ -106,25 +101,20 @@ abstract class BaseRepository {
                 // 4. 保存到数据库
                 try {
                     saveCallResult(remoteData)
-                    Log.e("NewsViewModel", "remoteData 4 Success")
                     emit(ResultState.Success(remoteData))
                 } catch (e: Exception) {
                     // 保存失败不影响数据返回，但可以记录日志
-                    Log.e("NewsViewModel", "remoteData 5 Error")
                     emit(ResultState.Error(e, resolveError(e)))
                 }
             } else if (dbData != null) {
                 // 5. API没有数据，但数据库有数据
-                Log.e("NewsViewModel", "remoteData 6 dbData")
                 emit(ResultState.Success(dbData))
             } else {
                 // 6. 都没有数据
                 val e = Exception("No data available")
-                Log.e("NewsViewModel", "remoteData 7 Error")
                 emit(ResultState.Error(e, resolveError(e)))
             }
         } catch (e: Exception) {
-            Log.e("NewsViewModel", "remoteData 8 Error")
             emit(ResultState.Error(e, resolveError(e)))
         }
     }
@@ -172,7 +162,6 @@ abstract class BaseRepository {
         } catch (e: Exception) {
             emit(ResultState.Error(e, resolveError(e)))
         }
-
     }
 
 

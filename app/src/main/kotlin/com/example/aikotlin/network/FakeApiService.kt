@@ -1,6 +1,6 @@
 package com.example.aikotlin.network
 
-import com.example.aikotlin.data.fake.FakeNewsDataStore
+import com.example.aikotlin.data.FakeNewsDataProvider
 import com.example.aikotlin.model.NewsArticle
 import com.example.aikotlin.model.NewsResponse
 import kotlinx.coroutines.delay
@@ -20,7 +20,7 @@ open class FakeApiService : ApiService {
         apiKey: String
     ): NewsResponse {
         delay(800)
-        val articles = FakeNewsDataStore.getArticlesByCategory(category)
+        val articles = FakeNewsDataProvider.getArticlesByCategory(category)
         return buildPagedResponse(articles, page, pageSize)
     }
     
@@ -31,7 +31,7 @@ open class FakeApiService : ApiService {
         apiKey: String
     ): NewsResponse {
         delay(600)
-        val articles = FakeNewsDataStore.searchArticles(query)
+        val articles = FakeNewsDataProvider.searchArticles(query)
         // 模拟网络层返回加密数据
         return buildPagedResponse(articles, page, pageSize)
     }

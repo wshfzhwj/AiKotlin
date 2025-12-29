@@ -1,5 +1,7 @@
 package com.example.aikotlin.ui.video
 
+import com.example.aikotlin.model.VideoItem
+
 object VideoDataProvider {
     
     fun getVideos(): List<VideoItem> {

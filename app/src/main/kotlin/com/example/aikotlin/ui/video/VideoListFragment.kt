@@ -5,43 +5,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.aikotlin.R
 import com.example.aikotlin.base.BaseFragment
 import com.example.aikotlin.base.BaseViewModel
+import com.example.aikotlin.data.FakeNewsDataProvider
+import com.example.aikotlin.data.FakeVideoDataProvider
 import com.example.aikotlin.databinding.FragmentVideoListBinding
+import com.example.aikotlin.ui.news.CategoryTabLayout
 import kotlinx.coroutines.launch
-import kotlin.getValue
 
-class VideoListFragment : BaseFragment<FragmentVideoListBinding, BaseViewModel>() {
+class VideoListFragment : BaseFragment<FragmentVideoListBinding, BaseViewModel>(),
+    CategoryTabLayout.OnCategorySelectedListener {
+
     override val viewModel: BaseViewModel by viewModels()
-    private lateinit var recyclerView: androidx.recyclerview.widget.RecyclerView
-    private lateinit var emptyState: android.widget.TextView
-    private lateinit var progressBar: android.widget.ProgressBar
-    private lateinit var videoAdapter: VideoAdapter
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        // 初始化视图
-        recyclerView = view.findViewById(R.id.recyclerView)
-        emptyState = view.findViewById(R.id.emptyState)
-        progressBar = view.findViewById(R.id.progressBar)
-
-        // 初始化适配器
-        videoAdapter = VideoAdapter(requireContext())
-
-        // 设置RecyclerView
-        val layoutManager = LinearLayoutManager(requireContext())
-        recyclerView.layoutManager = layoutManager
-        recyclerView.adapter = videoAdapter
-
-        // 加载模拟视频数据
-        loadVideoData()
-    }
 
     override fun getViewBinding(
         inflater: LayoutInflater,
@@ -50,20 +28,54 @@ class VideoListFragment : BaseFragment<FragmentVideoListBinding, BaseViewModel>(
         return FragmentVideoListBinding.inflate(inflater, container, false)
     }
 
-    private fun loadVideoData() {
-        lifecycleScope.launch {
-            progressBar.isVisible = true
-            emptyState.isVisible = false
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-            // 模拟加载延迟
+        // 初始化适配器
+        val videoAdapter = VideoAdapter(requireContext())
+
+        // 设置RecyclerView
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        binding.recyclerView.adapter = videoAdapter
+
+        // 设置分类栏
+        binding.categoryTabLayout.setCategories(FakeVideoDataProvider.getVideoCategories())
+        binding.categoryTabLayout.setOnCategorySelectedListener(this)
+
+        // 初始加载默认分类的数据
+        loadVideoData(videoAdapter)
+    }
+
+    /**
+     * 根据分类ID加载视频数据。
+     * @param categoryId 分类ID，默认为“hot”（热门）。
+     */
+    private fun loadVideoData(adapter: VideoAdapter, categoryId: String = "hot") {
+        lifecycleScope.launch {
+            // 开始加载，显示进度条
+            binding.progressBar.isVisible = true
+            binding.emptyState.isVisible = false
+
+            // 模拟网络延迟
             kotlinx.coroutines.delay(500)
 
-            // 使用模拟数据
-            val videoList = VideoDataProvider.getVideos()
-            videoAdapter.submitList(videoList)
+            // 获取并提交视频列表
+            val videoList = FakeVideoDataProvider.getVideos(categoryId)
+            adapter.submitList(videoList)
 
-            progressBar.isVisible = false
-            emptyState.isVisible = videoList.isEmpty()
+            // 加载完成，隐藏进度条并根据结果显示或隐藏空状态
+            binding.progressBar.isVisible = false
+            binding.emptyState.isVisible = videoList.isEmpty()
+        }
+    }
+
+    /**
+     * 当分类被选中时的回调。
+     */
+    override fun onCategorySelected(categoryId: String, categoryName: String) {
+        // 确保adapter已初始化
+        (binding.recyclerView.adapter as? VideoAdapter)?.let {
+            loadVideoData(it, categoryId)
         }
     }
 }

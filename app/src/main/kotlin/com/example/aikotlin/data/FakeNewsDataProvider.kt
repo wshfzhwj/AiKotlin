@@ -1,16 +1,13 @@
-package com.example.aikotlin.data.fake
+package com.example.aikotlin.data
 
+import com.example.aikotlin.model.Category
 import com.example.aikotlin.model.NewsArticle
 import com.example.aikotlin.utils.CryptoUtils
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.util.Locale
 
-/**
- * 简单的内存数据仓库，用于模拟网络层返回的新闻数据。
- * 通过解析JSON字符串来模拟真实的网络数据处理流程。
- */
-object FakeNewsDataStore {
+object FakeNewsDataProvider {
 
     private val gson = Gson()
     private var cachedArticles: List<NewsArticle>? = null
@@ -206,4 +203,18 @@ object FakeNewsDataStore {
         val lower = rawCategory.lowercase(Locale.getDefault())
         return categoryAliases[lower] ?: lower
     }
+
+    private val newsCategories = listOf(
+        Category("general", "推荐"),
+        Category("tech", "科技"),
+        Category("finance", "财经"),
+        Category("sports", "体育"),
+        Category("entertainment", "娱乐"),
+        Category("health", "健康"),
+        Category("education", "教育"),
+        Category("auto", "汽车"),
+        Category("travel", "旅游")
+    )
+
+    fun getCategories(): List<Category> = newsCategories
 }

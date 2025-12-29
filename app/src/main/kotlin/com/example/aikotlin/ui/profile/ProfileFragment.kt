@@ -4,8 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import coil.load
+import coil.transform.CircleCropTransformation
 import com.example.aikotlin.R
 import com.example.aikotlin.base.BaseFragment
 import com.example.aikotlin.base.BaseViewModel
@@ -20,10 +23,10 @@ class ProfileFragment : BaseFragment<FragmentProfileBinding, BaseViewModel>() {
         super.onViewCreated(view, savedInstanceState)
 
         // 初始化个人资料信息
-        initProfileInfo(view)
+        initProfileInfo()
 
         // 初始化功能列表
-        initFunctionItems(view)
+        initFunctionItems()
 
         val editFab =
             view.findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(
@@ -39,59 +42,47 @@ class ProfileFragment : BaseFragment<FragmentProfileBinding, BaseViewModel>() {
         return FragmentProfileBinding.inflate(inflater, container, false)
     }
 
-    private fun initProfileInfo(view: View) {
+    private fun initProfileInfo() {
         // 设置用户头像、昵称等信息
-        val avatarImageView = view.findViewById<android.widget.ImageView>(R.id.avatarImageView)
-        val nicknameTextView = view.findViewById<android.widget.TextView>(R.id.nicknameTextView)
-        val signatureTextView = view.findViewById<android.widget.TextView>(R.id.signatureTextView)
+        // 使用Coil加载并美化头像
+        binding.avatarImageView.load(R.mipmap.messi) {
+            crossfade(true)
+            placeholder(R.drawable.ic_placeholder_avatar)
+            error(R.drawable.ic_placeholder_avatar)
+            transformations(CircleCropTransformation())
+        }
+        binding.nicknameTextView.text = "今日头条用户"
+        binding.signatureTextView.text = "这个人很懒，什么都没有留下"
 
-        // 使用默认头像
-        avatarImageView.setImageResource(R.drawable.ic_placeholder_avatar)
-        nicknameTextView.text = "今日头条用户"
-        signatureTextView.text = "这个人很懒，什么都没有留下"
-
-        // 设置统计数据
-        val followCountTextView =
-            view.findViewById<android.widget.TextView>(R.id.followCountTextView)
-        val followerCountTextView =
-            view.findViewById<android.widget.TextView>(R.id.followerCountTextView)
-        val likeCountTextView = view.findViewById<android.widget.TextView>(R.id.likeCountTextView)
-
-        followCountTextView.text = "128"
-        followerCountTextView.text = "32"
-        likeCountTextView.text = "512"
+        binding.followCountTextView.text = "128"
+        binding.followerCountTextView.text = "32"
+        binding.likeCountTextView.text = "512"
     }
 
-    private fun initFunctionItems(view: View) {
+    private fun initFunctionItems() {
         // 设置功能项的点击事件
-        val myWorksView = view.findViewById<View>(R.id.myWorksView)
-        val myCollectionView = view.findViewById<View>(R.id.myCollectionView)
-        val myHistoryView = view.findViewById<View>(R.id.myHistoryView)
-        val myMessageView = view.findViewById<View>(R.id.myMessageView)
-        val settingsView = view.findViewById<View>(R.id.settingsView)
-
-        myWorksView.setOnClickListener {
+        binding.myWorksView.setOnClickListener {
             showToast("我的作品")
         }
 
-        myCollectionView.setOnClickListener {
+        binding.myCollectionView.setOnClickListener {
             showToast("我的收藏")
         }
 
-        myHistoryView.setOnClickListener {
+        binding.myHistoryView.setOnClickListener {
             showToast("浏览历史")
         }
 
-        myMessageView.setOnClickListener {
+        binding.myMessageView.setOnClickListener {
             showToast("我的消息")
         }
 
-        settingsView.setOnClickListener {
+        binding.settingsView.setOnClickListener {
             showToast("设置")
         }
     }
 
     private fun showToast(message: String) {
-        android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, message, android.widget.Toast.LENGTH_SHORT).show()
     }
 }

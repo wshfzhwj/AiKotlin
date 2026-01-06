@@ -3,9 +3,9 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    id("kotlin-kapt")
-    id("androidx.navigation.safeargs.kotlin")
-    id("kotlin-parcelize") // 添加 Parcelize 插件
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.navigation.safeargs)
+    alias(libs.plugins.kotlin.parcelize)
 }
 
 android {
@@ -27,16 +27,28 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("saint_key.jks")
+            storePassword = "12345678"
+            keyAlias = "saint"
+            keyPassword = "12345678"
         }
-        debug {
+        create("release") {
+            storeFile = file("saint_key.jks")
+            storePassword = "12345678"
+            keyAlias = "saint"
+            keyPassword = "12345678"
+        }
+    }
+
+    buildTypes {
+        getByName("debug") {
+            signingConfig = signingConfigs.getByName("debug")
+        }
+        getByName("release") {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -85,7 +97,7 @@ dependencies {
     // Room Database
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
-    kapt(libs.room.compiler)
+    ksp(libs.room.compiler)
 
     // Navigation
     implementation(libs.androidx.navigation.fragment.ktx)

@@ -65,3 +65,5 @@ Hilt 注入： 确保所有的 Repository 和 UseCase 都通过 @Inject 提供�
 不要将业务逻辑写在 Activity/Fragment 中。
 不要使用 AsyncTask 或 Thread。
 除非显式要求，不要引入 Compose 依赖。
+尽量不要使用过时的api 如onBackPressed()，使用 OnBackPressedDispatcher。
+按照应用强制需求 如Edge-to-Edge “在生成的 XML 布局中处理 WindowInsets，确保不被刘海屏遮挡。

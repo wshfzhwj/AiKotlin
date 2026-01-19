@@ -1,7 +1,7 @@
 package com.example.aikotlin.base
 
 import android.util.Log
-import com.example.aikotlin.repository.ResultState
+import com.example.aikotlin.model.NewsArticle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -14,34 +14,33 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import kotlin.collections.emptyList
 
 /**
  * A base class for repositories, providing a helper function to safely execute API calls
- * and wrap them in a ResultState Flow.
+ * and wrap them in a Result Flow.
  */
 abstract class BaseRepository {
 
     /**
-     * Executes a suspend function and wraps its result in a Flow<ResultState<T>>.
+     * Executes a suspend function and wraps its result in a Flow<Result<T>>.
      * It emits Loading, then either Success with the data or Error with an exception.
      */
-    fun <T> safeApiCall(block: suspend () -> T): Flow<ResultState<T>> = flow {
-        // 1. 开始时，自动发射 Loading
-        emit(ResultState.Loading)
+    fun <T> safeApiCall(block: suspend () -> T): Flow<Result<T>> = flow {
         try {
             // 2. 执行真正的网络请求
             val response = block()
-            emit(ResultState.Success(response))
+            emit(Result.success(response))
         } catch (e: Exception) {
             // 4. 捕获所有异常，转换为 Error 状态
             // 这里可以做全局错误映射，比如解析 HttpException 的 code 401/500 等
-            emit(ResultState.Error(e, resolveError(e)))
+            emit(Result.failure(e))
         }
     }.flowOn(Dispatchers.IO)
 
     // 简单的错误解析示例
-     fun resolveError(e: Exception): String {
+    fun resolveError(e: Exception): String {
         return when (e) {
             is java.net.SocketTimeoutException -> "网络连接超时"
             is java.net.UnknownHostException -> "无网络连接"
@@ -69,53 +68,51 @@ abstract class BaseRepository {
                 else -> false
             }
         }
-    ): Flow<ResultState<T>> = flow {
+    ): Flow<Result<T>> = flow {
         try {
-            // 1. 发射 Loading
-            emit(ResultState.Loading)
-//         2. 先查缓存
+//         1. 先查缓存
 //         first() 会挂起直到获取到数据库的当前最新值
 //         注意：这里不用 collect，因为我们只取一次当前状态来判断是否需要请求网络
             val dbData = queryFromDb().firstOrNull()
             // 需要请求：先发射当前的缓存数据（让用户先看着旧数据，别显示空白）
             // 3. 判断是否需要请求网络
             if (dbData != null && !shouldFetch(dbData)) {
-                emit(ResultState.Success(dbData))
+                emit(Result.success(dbData))
                 return@flow
             }
             val remoteData = try {
                 // 3.2 执行网络请求
                 fetchNetwork()
                 // 3.3 保存到数据库 (Room 会自动通知 queryFromDb 的观察者)
-//                emit(ResultState.Success(remoteData) )
+//                emit(Result.success(remoteData) )
             } catch (e: Exception) {
                 // 3.4 网络失败：发射错误，但数据依然是缓存数据
                 if (dbData != null) {
-                    emit(ResultState.Success(dbData))
+                    emit(Result.success(dbData))
                     return@flow
                 } else {
-                    emit(ResultState.Error(e, resolveError(e)))
+                    emit(Result.failure(e))
                 }
             }
             if (remoteData != null && remoteData is T) {
                 // 4. 保存到数据库
                 try {
                     saveCallResult(remoteData)
-                    emit(ResultState.Success(remoteData))
+                    emit(Result.success(remoteData))
                 } catch (e: Exception) {
                     // 保存失败不影响数据返回，但可以记录日志
-                    emit(ResultState.Error(e, resolveError(e)))
+                    emit(Result.failure(e))
                 }
             } else if (dbData != null) {
                 // 5. API没有数据，但数据库有数据
-                emit(ResultState.Success(dbData))
+                emit(Result.success(dbData))
             } else {
                 // 6. 都没有数据
                 val e = Exception("No data available")
-                emit(ResultState.Error(e, resolveError(e)))
+                emit(Result.failure(e))
             }
         } catch (e: Exception) {
-            emit(ResultState.Error(e, resolveError(e)))
+            emit(Result.failure(e))
         }
     }
 
@@ -134,18 +131,17 @@ abstract class BaseRepository {
         crossinline saveCallResult: suspend (RequestType) -> Unit,
         crossinline shouldFetch: (ResultType?) -> Boolean = { true },
         crossinline typeMap: (RequestType) -> ResultType
-    ): Flow<ResultState<ResultType>> = flow {
+    ): Flow<Result<ResultType>> = flow {
         try {
-            // 1. 发射 Loading
-            emit(ResultState.Loading)
-//         2. 先查缓存
+//         1. 先查缓存
 //         first() 会挂起直到获取到数据库的当前最新值
 //         注意：这里不用 collect，因为我们只取一次当前状态来判断是否需要请求网络
             val dbData = queryFromDb().first()
             // 需要请求：先发射当前的缓存数据（让用户先看着旧数据，别显示空白）
+//            Timber.tag("NewsListFragment").e("networkBoundResourceFlowEmitAll dbData ${dbData}")
             // 3. 判断是否需要请求网络
             if (shouldFetch(dbData)) {
-                emit(ResultState.Success(dbData))
+                emit(Result.success(dbData))
                 try {
                     // 3.2 执行网络请求
                     val remoteData = fetchNetwork()
@@ -153,17 +149,14 @@ abstract class BaseRepository {
                     saveCallResult(remoteData)
                 } catch (e: Exception) {
                     // 3.4 网络失败：发射错误，但数据依然是缓存数据
-                    emit(ResultState.Error(e, resolveError(e)))
+                    emit(Result.failure(e))
                 }
-            } else {
-
             }
-            emitAll(queryFromDb().map { ResultState.Success(it) })
+            emitAll(queryFromDb().map { Result.success(it) })
         } catch (e: Exception) {
-            emit(ResultState.Error(e, resolveError(e)))
+            emit(Result.failure(e))
         }
     }
-
 
 
     /**
@@ -181,15 +174,13 @@ abstract class BaseRepository {
         crossinline saveCallResult: suspend (RequestType) -> Unit,
         crossinline shouldFetch: (ResultType) -> Boolean = { true },
         crossinline typeMap: (RequestType) -> ResultType
-    ): Flow<ResultState<ResultType>> = flow {
-        // 1. 发射 Loading
-        emit(ResultState.Loading)
-//         2. 先查缓存
+    ): Flow<Result<ResultType>> = flow {
+//         1. 先查缓存
 //         first() 会挂起直到获取到数据库的当前最新值
 //         注意：这里不用 collect，因为我们只取一次当前状态来判断是否需要请求网络
         val dbData = queryFromDb().first()
         // 需要请求：先发射当前的缓存数据（让用户先看着旧数据，别显示空白）
-        emit(ResultState.Success(dbData))
+        emit(Result.success(dbData))
         // 3. 判断是否需要请求网络
         if (shouldFetch(dbData)) {
             try {
@@ -197,10 +188,10 @@ abstract class BaseRepository {
                 val remoteData = fetchNetwork()
                 // 3.3 保存到数据库 (Room 会自动通知 queryFromDb 的观察者)
                 saveCallResult(remoteData)
-                emit(ResultState.Success(typeMap(remoteData)))
+                emit(Result.success(typeMap(remoteData)))
             } catch (e: Exception) {
                 // 3.4 网络失败：发射错误，但数据依然是缓存数据
-                emit(ResultState.Error(e, resolveError(e)))
+                emit(Result.failure(e))
             }
         } else {
             // 不需要网络请求，直接用缓存
@@ -215,10 +206,8 @@ abstract class BaseRepository {
         fetchNetwork: suspend () -> T?,
         saveCallResult: suspend (T) -> Unit,
         shouldFetch: (T?) -> Boolean = { true }
-    ): Flow<ResultState<T>> = channelFlow {
+    ): Flow<Result<T>> = channelFlow {
         try {
-            // 发射加载状态
-            send(ResultState.Loading)
             // 1. 先发射数据库数据
             queryFromDb()
                 .catch { e ->
@@ -227,7 +216,7 @@ abstract class BaseRepository {
                 }
                 .collect { dbData ->
                     // 发射数据库数据
-                    send(ResultState.Success(dbData))
+                    send(Result.success(dbData))
                     // 如果应该从API更新
                     if (shouldFetch(dbData)) {
                         try {
@@ -237,7 +226,7 @@ abstract class BaseRepository {
                                 // 保存到数据库
                                 saveCallResult(apiData)
                                 // 发射更新后的数据
-                                send(ResultState.Success(apiData))
+                                send(Result.success(apiData))
                             }
                         } catch (e: Exception) {
                             // API错误，但已经有数据库数据，不发射错误
@@ -247,7 +236,7 @@ abstract class BaseRepository {
                 }
 
         } catch (e: Exception) {
-            send(ResultState.Error(e,resolveError(e)))
+            send(Result.failure(e))
         }
     }
 
@@ -265,16 +254,14 @@ abstract class BaseRepository {
         crossinline fetchNetwork: suspend () -> RequestType,
         crossinline saveCallResult: suspend (RequestType) -> Unit,
         crossinline shouldFetch: (ResultType?) -> Boolean = { true }
-    ): Flow<ResultState<ResultType>> = channelFlow { // 1. 使用 channelFlow
-        // 发射初始 Loading
-        send(ResultState.Loading)
+    ): Flow<Result<ResultType>> = channelFlow { // 1. 使用 channelFlow
         // 标记位：确保只在第一次收到数据时判断是否请求网络
         var isFirstCollection = true
         // 2. 启动收集数据库的逻辑 (这是唯一的一次订阅)
         // 这里的 collect 会一直运行，直到外部协程取消
         queryFromDb().collect { dbData ->
             // 3. 总是第一时间把数据库的数据发射出去 (SSOT)
-            send(ResultState.Success(dbData))
+            send(Result.success(dbData))
             // 4. 判断是否是第一次数据，且需要网络请求
             if (isFirstCollection && shouldFetch(dbData)) {
                 isFirstCollection = false
@@ -289,7 +276,7 @@ abstract class BaseRepository {
                     } catch (e: Exception) {
                         // 网络失败，发射 Error，但注意：
                         // 此时流并没有断，用户依然能看到之前的缓存数据 (dbData)
-                        send(ResultState.Error(e, resolveError(e)))
+                        send(Result.failure(e))
                     }
                 }
             } else {

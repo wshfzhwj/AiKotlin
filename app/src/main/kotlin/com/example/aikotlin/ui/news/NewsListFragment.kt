@@ -21,6 +21,7 @@ import com.example.aikotlin.model.NewsArticle
 import com.example.aikotlin.viewmodel.NewsViewModel
 import com.example.aikotlin.viewmodel.UiEvent
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class NewsListFragment : BaseFragment<FragmentNewsListBinding, NewsViewModel>(),
     CategoryTabLayout.OnCategorySelectedListener {
@@ -59,25 +60,27 @@ class NewsListFragment : BaseFragment<FragmentNewsListBinding, NewsViewModel>(),
 
     override fun setupListeners() {
         // RecyclerView scroll listener for pagination
-        val layoutManager = binding.newsRecyclerView.layoutManager as LinearLayoutManager
         binding.newsRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
+                if (dy <= 0 || isLoading() || !viewModel.uiState.value.hasMoreData) {
+                    return
+                }
+                val layoutManager = binding.newsRecyclerView.layoutManager as LinearLayoutManager
                 val totalItemCount = layoutManager.itemCount
                 val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
 
                 // Load more when scrolled to the bottom
-                if (lastVisibleItemPosition >= totalItemCount - 1 &&
-                    totalItemCount > 0 &&
-                    !binding.swipeRefreshLayout.isRefreshing
-                ) {
+                if (lastVisibleItemPosition >= totalItemCount - 1 && totalItemCount > 0) {
                     viewModel.loadMore()
                 }
             }
         })
-
-        // SearchView listeners
         setupSearch()
+    }
+
+    fun isLoading(): Boolean{
+        return viewModel.uiState.value.isLoading || viewModel.uiState.value.isRefreshing || viewModel.uiState.value.isLoadingMore
     }
 
     private fun setupSearch() {
@@ -127,9 +130,10 @@ class NewsListFragment : BaseFragment<FragmentNewsListBinding, NewsViewModel>(),
                     viewModel.uiState.collect { state ->
                         // 1. 处理加载状态
                         // SwipeRefreshLayout的加载状态
-                        binding.swipeRefreshLayout.isRefreshing = state.isLoading && adapter.currentList.isNotEmpty()
+                        binding.swipeRefreshLayout.isRefreshing = state.isRefreshing
                         // 初始加载时的ProgressBar状态
-                        binding.progressBar.visibility = if (state.isLoading && adapter.currentList.isEmpty()) View.VISIBLE else View.GONE
+                        binding.progressBar.visibility =
+                            if (state.isLoadingMore) View.VISIBLE else View.GONE
 
                         // 2. 提交新闻列表
                         // 使用distinctUntilChanged()的特性，只有在列表引用变化时才会提交
@@ -138,7 +142,8 @@ class NewsListFragment : BaseFragment<FragmentNewsListBinding, NewsViewModel>(),
                         }
 
                         // 3. 处理空状态视图
-                        binding.emptyStateText.visibility = if (state.articles.isEmpty() && !state.isLoading) View.VISIBLE else View.GONE
+                        binding.emptyStateText.visibility =
+                            if (state.articles.isEmpty() && !state.isLoading) View.VISIBLE else View.GONE
 
                         // 4. 处理 "没有更多数据" 的状态
                         if (!state.hasMoreData) {
@@ -151,7 +156,7 @@ class NewsListFragment : BaseFragment<FragmentNewsListBinding, NewsViewModel>(),
                     viewModel.uiEvents.collect { event ->
                         when (event) {
                             is UiEvent.ShowToast -> {
-                                showToast(event.message)
+                                showToast(event.message!!)
                             }
                         }
                     }

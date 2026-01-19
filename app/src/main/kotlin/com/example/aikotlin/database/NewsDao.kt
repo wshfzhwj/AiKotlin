@@ -16,13 +16,13 @@ interface NewsDao {
     @Query("DELETE FROM news_articles")
     fun clearArticles(): Int
     
-    @Query("SELECT * FROM news_articles WHERE category = :category ORDER BY publishedAt DESC")
-    fun getArticlesByCategory(category: String): Flow<List<NewsArticle>>
+    @Query("SELECT * FROM news_articles WHERE category = :category LIMIT :pageSize OFFSET (:page - 1) * :pageSize")
+    fun getArticlesByCategory(category: String, page: Int = 1, pageSize: Int): Flow<List<NewsArticle>>
 
-    @Query("SELECT * FROM news_articles WHERE category = :category ORDER BY publishedAt DESC")
-    fun getArticlesByCategoryAsList(category: String): List<NewsArticle>
+    @Query("SELECT * FROM news_articles WHERE category = :category LIMIT :pageSize OFFSET (:page - 1) * :pageSize")
+    fun getArticlesByCategoryAsList(category: String, page: Int = 1, pageSize: Int = 20): List<NewsArticle>
 
-    @Query("SELECT * FROM news_articles ORDER BY publishedAt DESC LIMIT :limit")
+    @Query("SELECT * FROM news_articles LIMIT :limit")
     fun getRecentArticles(limit: Int = 20): Flow<List<NewsArticle>>
     
     @Query("SELECT DISTINCT category FROM news_articles")

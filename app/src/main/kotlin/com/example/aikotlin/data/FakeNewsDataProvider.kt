@@ -5,6 +5,7 @@ import com.example.aikotlin.model.NewsArticle
 import com.example.aikotlin.utils.CryptoUtils
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import timber.log.Timber
 import java.util.Locale
 
 object FakeNewsDataProvider {
@@ -205,6 +206,7 @@ object FakeNewsDataProvider {
     }
 
     private val newsCategories = listOf(
+        Category("all", "全部"),
         Category("general", "推荐"),
         Category("tech", "科技"),
         Category("finance", "财经"),

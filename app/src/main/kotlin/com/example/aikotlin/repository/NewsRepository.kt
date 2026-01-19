@@ -21,123 +21,83 @@ class NewsRepository(
     private val remoteDataSource: NewsRemoteDataSource,
     private val localDataSource: NewsLocalDataSource
 ) : BaseRepository() {
-    val newsCategories: List<Category>
-        get() = listOf(
-            Category("general", "综合"),
-            Category("business", "财经"),
-            Category("technology", "科技"),
-            Category("entertainment", "娱乐"),
-            Category("sports", "体育"),
-            Category("health", "健康"),
-            Category("science", "科学")
-        )
-
-    suspend fun getNewsByCategoryByFlow(category: String, page: Int = 1, pageSize: Int = 20) = flow {
-        emit(ResultState.Loading)
-        val cache = localDataSource.getArticlesByCategoryByList(category)
-        emit(ResultState.Success(cache))
+    suspend fun getNewsByCategoryByFlow(category: String, page: Int = 1, pageSize: Int = 20) =
+        flow {
+            val cache = localDataSource.getArticlesByCategoryByList(category, page, pageSize)
+            emit(Result.success(cache))
 //        if (!cache.isEmpty()) {
-//            emit(ResultState.Success(cache))
+//            emit(Result.success(cache))
 //        }
-        try {
-            val remote = remoteDataSource.getTopHeadlinesAsFlow(category, page, pageSize).first().map { it.copy(category = category) }
-            localDataSource.saveArticles(remote)
-            emit(ResultState.Success(remote))
-        } catch (e: Exception) {
-            emit(ResultState.Error(e, resolveError(e)))
-        }
-    }.flowOn(Dispatchers.IO)
+            try {
+                val remote =
+                    remoteDataSource.getTopHeadlinesAsFlow(category, page, pageSize).first()
+                        .map { it.copy(category = category) }
+                localDataSource.saveArticles(remote)
+                emit(Result.success(remote))
+            } catch (e: Exception) {
+                emit(Result.failure(e))
+            }
+        }.flowOn(Dispatchers.IO)
 
-    suspend fun getNewsByCategoryByChannelFlow(category: String, page: Int = 1, pageSize: Int = 20) =
+    suspend fun getNewsByCategoryByChannelFlow(category: String, page: Int, pageSize: Int) =
         channelFlow {
-            send(ResultState.Loading)
-            send(ResultState.Success(localDataSource.getArticlesByCategoryByList(category)))
+            send(
+                Result.success(
+                    localDataSource.getArticlesByCategoryByList(
+                        category,
+                        page,
+                        pageSize
+                    )
+                )
+            )
             try {
                 remoteDataSource.getTopHeadlinesAsFlow(category, page, pageSize)
                     .collect { remoteArticles ->
                         val articlesWithCategory =
                             remoteArticles.map { it.copy(category = category) }
                         localDataSource.saveArticles(articlesWithCategory)
-                        send(ResultState.Success(articlesWithCategory))
+                        send(Result.success(articlesWithCategory))
                     }
             } catch (e: Exception) {
-                send(ResultState.Error(e, resolveError(e)))
+                send(Result.failure(e))
             }
         }.flowOn(Dispatchers.IO)
 
 
-    suspend fun queryDBByCategory(category: String) :  Flow<List<NewsArticle>>{
-        return localDataSource.getArticlesByCategoryByFlow(category)
+    suspend fun queryDBByCategory(
+        category: String,
+        page: Int,
+        pageSize: Int
+    ): Flow<List<NewsArticle>> {
+        return localDataSource.getArticlesByCategoryByFlow(category, page, pageSize)
     }
-
-
 
     suspend fun getNewsByCategoryBySuper(
         category: String,
-        query:String,
-        page: Int = 1,
-        pageSize: Int = 20
-    ): Flow<ResultState<List<NewsArticle>>> {
-//        return networkBoundResourceFlowGPT(
-//            queryFromDb = { localDataSource.getArticlesByCategoryByFlow(category) },
-//            shouldFetch = { cachedArticles -> cachedArticles == null || cachedArticles.isEmpty() },
-//            fetchNetwork = { remoteDataSource.getTopHeadlines(category, page, pageSize) },
-//            saveCallResult = { articles ->
-//                val articlesWithCategory = articles.map { it.copy(category = category) }
-//                localDataSource.saveArticles(articlesWithCategory)
-//            },
-//        ).flowOn(Dispatchers.IO)
-
-//        return networkBoundResource(
-//            queryFromDb = { localDataSource.getArticlesByCategoryByFlow(category) },
-////            shouldFetch = { cachedArticles -> cachedArticles == null || cachedArticles.isEmpty() },
-//            fetchNetwork = { remoteDataSource.getTopHeadlines(category, page, pageSize) },
-//            saveCallResult = { articles ->
-//                val articlesWithCategory = articles.map { it.copy(category = category) }
-//                localDataSource.saveArticles(articlesWithCategory)
-//            }
-//        ).flowOn(Dispatchers.IO)
-
-//        return fetchDataIncremental(
-//            queryFromDb = { localDataSource.getArticlesByCategoryByFlow(category) },
-//            shouldFetch = { cachedArticles -> cachedArticles == null || cachedArticles.isEmpty() },
-//            fetchNetwork = { remoteDataSource.getTopHeadlines(category, page, pageSize) },
-//            saveCallResult = { articles ->
-//                val articlesWithCategory = articles.map { it.copy(category = category) }
-//                localDataSource.saveArticles(articlesWithCategory)
-//            }
-//        ).flowOn(Dispatchers.IO)
+        query: String,
+        page: Int,
+        pageSize: Int
+    ): Flow<Result<List<NewsArticle>>> {
         return networkBoundResourceFlowEmitAll(
-            queryFromDb = { queryDBByCategory(category) },
-            shouldFetch = { cachedArticles -> cachedArticles == null || cachedArticles.isEmpty() },
+            queryFromDb = { queryDBByCategory(category, page, pageSize) },
+//            shouldFetch = { cachedArticles -> cachedArticles == null || cachedArticles.isEmpty() },
             fetchNetwork = { remoteDataSource.getTopHeadlines(category, page, pageSize) },
             saveCallResult = { articles ->
                 val articlesWithCategory = articles.map { it.copy(category = category) }
                 localDataSource.saveArticles(articlesWithCategory)
             },
-            typeMap = {it}
+            typeMap = { it }
         ).flowOn(Dispatchers.IO)
-
-//        return networkBoundResourceFlow(
-//            queryFromDb = { localDataSource.getArticlesByCategoryByFlow(category) },
-//            shouldFetch = { cachedArticles -> cachedArticles.isEmpty()},
-//            fetchNetwork = { remoteDataSource.getTopHeadlines(category, page, pageSize) },
-//            saveCallResult = { articles ->
-//                val articlesWithCategory = articles.map { it.copy(category = category) }
-//                localDataSource.saveArticles(articlesWithCategory)
-//            },
-//            typeMap = {it}
-//        ).flowOn(Dispatchers.IO)
     }
 
 
     suspend fun getNewsByCategoryByList(
         category: String,
-        page: Int = 1,
-        pageSize: Int = 20
+        page: Int,
+        pageSize: Int
     ): List<NewsArticle> {
         // 先尝试从本地获取
-        val localArticles = localDataSource.getArticlesByCategoryByList(category)
+        val localArticles = localDataSource.getArticlesByCategoryByList(category, page, pageSize)
         if (localArticles.isEmpty()) {
             // 本地没有数据，使用Flow从网络获取
             val remoteArticles =
@@ -151,13 +111,14 @@ class NewsRepository(
     }
 
     //    // 新版本：直接使用Flow数据源获取新闻
-    fun getNewsByCategory(category: String): Flow<List<NewsArticle>> {
+    fun getNewsByCategory(category: String, page: Int, pageSize: Int): Flow<List<NewsArticle>> {
         return flow {
             // 先尝试从本地获取
-            val localArticles = localDataSource.getArticlesByCategoryByList(category)
+            val localArticles =
+                localDataSource.getArticlesByCategoryByList(category, page, pageSize)
             if (localArticles.isEmpty()) {
                 // 本地没有数据，使用Flow从网络获取
-                remoteDataSource.getTopHeadlinesAsFlow(category)
+                remoteDataSource.getTopHeadlinesAsFlow(category, page, pageSize)
                     .collect { remoteArticles ->
                         val articlesWithCategory =
                             remoteArticles.map { it.copy(category = category) }
@@ -190,7 +151,7 @@ class NewsRepository(
             .catch { e -> emit(emptyList()) }
     }
 
-    fun getRecentNews(limit: Int = 20): Flow<List<NewsArticle>> {
+    fun getRecentNews(limit: Int): Flow<List<NewsArticle>> {
         return localDataSource.getRecentArticles(limit)
             .map { articles -> articles.ifEmpty { emptyList() } }
     }

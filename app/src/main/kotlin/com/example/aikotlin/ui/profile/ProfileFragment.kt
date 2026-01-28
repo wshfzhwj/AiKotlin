@@ -1,5 +1,6 @@
 package com.example.aikotlin.ui.profile
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,6 +14,7 @@ import com.example.aikotlin.R
 import com.example.aikotlin.base.BaseFragment
 import com.example.aikotlin.base.BaseViewModel
 import com.example.aikotlin.databinding.FragmentProfileBinding
+import com.example.aikotlin.ui.login.LoginActivity
 import com.example.aikotlin.viewmodel.NewsViewModel
 import kotlin.getValue
 
@@ -32,7 +34,11 @@ class ProfileFragment : BaseFragment<FragmentProfileBinding, BaseViewModel>() {
             view.findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(
                 R.id.editProfileFab
             )
-        editFab.setOnClickListener { showToast("编辑资料") }
+        editFab.setOnClickListener {
+//            showToast("编辑资料")
+            val intent = Intent(requireActivity(), LoginActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     override fun getViewBinding(

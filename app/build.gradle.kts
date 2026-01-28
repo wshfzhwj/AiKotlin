@@ -6,17 +6,13 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.navigation.safeargs)
     alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
     namespace = "com.example.aikotlin"
     compileSdk = 36
     
-    buildFeatures {
-        viewBinding = true
-        buildConfig = true
-    }
-
     defaultConfig {
         applicationId = "com.example.aikotlin"
         minSdk = 24
@@ -25,6 +21,16 @@ android {
         versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildFeatures {
+        viewBinding = true
+        buildConfig = true
+        compose = true // Added for Compose
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.1" // Align with Kotlin version. This version is compatible with kotlin 2.2.0
     }
 
     signingConfigs {
@@ -82,6 +88,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose) // Added for Compose
+    implementation(libs.androidx.lifecycle.runtime.compose) // Added for Compose
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.core)
@@ -89,6 +97,7 @@ dependencies {
 
     // Networking
     implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
     implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging.interceptor)
@@ -112,4 +121,14 @@ dependencies {
     // Timber for logging
     implementation(libs.timber)
 
+    // Compose
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.material)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.activity.compose)
 }

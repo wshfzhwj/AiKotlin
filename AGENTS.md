@@ -12,7 +12,7 @@
 
 架构模式： MVVM (Model-View-ViewModel) 配合 Clean Architecture。
 
-依赖注入： Hilt (最新稳定版)。
+依赖注入：否
 
 异步处理： Kotlin Coroutines + Flow (替代 LiveData)。
 
@@ -44,8 +44,6 @@ UI 生成： 先提供 XML 布局代码，确保 ID 命名符合 camelCase 且�
 
 ViewModel 编写： 使用 StateFlow 暴露 UI 状态，使用 SharedFlow 处理一次性事件（如弹窗、跳转）。
 
-Hilt 注入： 确保所有的 Repository 和 UseCase 都通过 @Inject 提供。
-
 性能核查： 检查是否有主线程耗时操作，是否正确使用了 viewModelScope。
 
 5. 常用代码模板片段 (Prompt Trigger)
@@ -67,3 +65,7 @@ Hilt 注入： 确保所有的 Repository 和 UseCase 都通过 @Inject 提供�
 除非显式要求，不要引入 Compose 依赖。
 尽量不要使用过时的api 如onBackPressed()，使用 OnBackPressedDispatcher。
 按照应用强制需求 如Edge-to-Edge “在生成的 XML 布局中处理 WindowInsets，确保不被刘海屏遮挡。
+
+#每次任务第一句：
+//Please read docs/ai/skill.md and project-context.md before answering.
+

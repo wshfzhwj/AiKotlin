@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">AIKotlin</string>
+    <string name="nexus_logo">NEXUS</string>
+    <string name="nexus_system_access">SYSTEM ACCESS</string>
+    <string name="label_identity">IDENTITY</string>
+    <string name="hint_identity">user@nexus.io</string>
+    <string name="label_passphrase">PASSPHRASE</string>
+    <string name="hint_passphrase">••••••••</string>
+    <string name="btn_authenticate">AUTHENTICATE</string>
+    <string name="forgot_credentials">Forgot credentials?</string>
+    <string name="footer_secure">SECURE CONNECTION ENCRYPTED</string>
+    <string name="cd_password_visibility">Toggle password visibility</string>
 </resources>

@@ -129,7 +129,7 @@ abstract class BaseActivity<T : ViewBinding, VM : ViewModel> : AppCompatActivity
         // Handle back button in the action bar
         return when (item.itemId) {
             android.R.id.home -> {
-                onBackPressed()
+                onBackPressedDispatcher.onBackPressed()
                 true
             }
 
@@ -141,7 +141,7 @@ abstract class BaseActivity<T : ViewBinding, VM : ViewModel> : AppCompatActivity
      * Called when the user clicks the back button.
      */
     override fun onSupportNavigateUp(): Boolean {
-        onBackPressed()
+        onBackPressedDispatcher.onBackPressed()
         return true
     }
 

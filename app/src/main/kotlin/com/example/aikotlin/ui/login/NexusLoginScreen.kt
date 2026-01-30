@@ -1,4 +1,4 @@
-package com.example.nexus.ui.login
+package com.example.aikotlin.ui.login
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -87,7 +87,8 @@ object NexusTypography {
 @Composable
 fun NexusLoginScreen(
     onLoginClick: (String, String) -> Unit = { _, _ -> },
-    onForgotCredentialsClick: () -> Unit = {}
+    onForgotCredentialsClick: () -> Unit = {},
+    isLoading: Boolean = false
 ) {
     var email by remember { mutableStateOf("user@nexus.io") }
     var password by remember { mutableStateOf("password") }
@@ -158,19 +159,30 @@ fun NexusLoginScreen(
             // Action Button
             Button(
                 onClick = { onLoginClick(email, password) },
+                enabled = !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(64.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = NexusColors.Accent,
-                    contentColor = Color.Black
+                    contentColor = Color.Black,
+                    disabledContainerColor = NexusColors.Accent.copy(alpha = 0.5f),
+                    disabledContentColor = Color.Black.copy(alpha = 0.5f)
                 ),
                 shape = CircleShape // Fully rounded
             ) {
-                Text(
-                    text = "AUTHENTICATE",
-                    style = NexusTypography.ButtonText
-                )
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.Black,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "AUTHENTICATE",
+                        style = NexusTypography.ButtonText
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(32.dp))

@@ -7,7 +7,9 @@ import androidx.room.Room
 import com.example.aikotlin.database.NewsDatabase
 import com.example.aikotlin.network.ApiClient
 import com.example.aikotlin.network.ApiService
+import com.example.aikotlin.repository.LoginRepository
 import com.example.aikotlin.repository.NewsRepository
+import com.example.aikotlin.viewmodel.LoginViewModel
 import com.example.aikotlin.viewmodel.NewsViewModel
 
 /**
@@ -16,12 +18,18 @@ import com.example.aikotlin.viewmodel.NewsViewModel
  */
 class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
 
+    private val apiService by lazy { ApiClient.apiService }
+    private val newsDatabase by lazy { NewsDatabase.getDatabase(context.applicationContext) }
+
     private val newsRepository by lazy {
-        val apiService = ApiClient.apiService
-        val newsDatabase = NewsDatabase.getDatabase(context.applicationContext)
         val newsRemoteDataSource = NewsRemoteDataSource(apiService)
         val newsLocalDataSource = NewsLocalDataSource(newsDatabase.newsDao())
         NewsRepository(newsRemoteDataSource, newsLocalDataSource)
+    }
+
+    private val loginRepository by lazy {
+        val userPreferenceDao = newsDatabase.userPreferenceDao()
+        LoginRepository(apiService, userPreferenceDao)
     }
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -30,6 +38,11 @@ class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory
             // 如果是 NewsViewModel，我们就知道如何创建它
             @Suppress("UNCHECKED_CAST")
             return NewsViewModel(newsRepository) as T
+        }
+
+        if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return LoginViewModel(loginRepository) as T
         }
 
         // if (modelClass.isAssignableFrom(MainViewModel::class.java)) {

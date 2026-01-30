@@ -26,11 +26,7 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
-        compose = true // Added for Compose
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1" // Align with Kotlin version. This version is compatible with kotlin 2.2.0
+        compose = true
     }
 
     signingConfigs {
@@ -97,7 +93,6 @@ dependencies {
 
     // Networking
     implementation(libs.retrofit)
-    implementation(libs.retrofit.converter.gson)
     implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging.interceptor)

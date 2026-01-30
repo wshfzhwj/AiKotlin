@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/nexus_background">
+
+    <!-- Logo Section -->
+    <TextView
+        android:id="@+id/tvLogo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/nexus_logo"
+        android:textColor="@color/nexus_text_primary"
+        android:textSize="@dimen/text_size_logo"
+        android:textStyle="bold"
+        android:letterSpacing="0.1"
+        app:layout_constraintBottom_toTopOf="@+id/tvSubtitle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.25"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:text="NEXUS" />
+
+    <TextView
+        android:id="@+id/tvSubtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/nexus_system_access"
+        android:textColor="@color/nexus_accent"
+        android:textSize="@dimen/text_size_subtitle"
+        android:fontFamily="monospace"
+        android:letterSpacing="0.2"
+        app:layout_constraintBottom_toTopOf="@+id/tilIdentity"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvLogo"
+        tools:text="SYSTEM ACCESS" />
+
+    <!-- Identity Input -->
+    <TextView
+        android:id="@+id/lblIdentity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:text="@string/label_identity"
+        android:textColor="@color/nexus_text_secondary"
+        android:textSize="@dimen/text_size_label"
+        android:letterSpacing="0.05"
+        app:layout_constraintBottom_toTopOf="@+id/etIdentity"
+        app:layout_constraintStart_toStartOf="@+id/etIdentity" />
+
+    <EditText
+        android:id="@+id/etIdentity"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/input_height"
+        android:layout_marginHorizontal="@dimen/margin_large"
+        android:background="@drawable/bg_nexus_input"
+        android:hint="@string/hint_identity"
+        android:inputType="textEmailAddress"
+        android:paddingHorizontal="20dp"
+        android:textColor="@color/nexus_text_primary"
+        android:textColorHint="@color/nexus_text_secondary"
+        android:textSize="@dimen/text_size_input"
+        app:layout_constraintBottom_toTopOf="@+id/lblPassphrase"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvSubtitle"
+        app:layout_constraintVertical_bias="0.3" />
+
+    <!-- Passphrase Input -->
+    <TextView
+        android:id="@+id/lblPassphrase"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:layout_marginTop="@dimen/margin_large"
+        android:text="@string/label_passphrase"
+        android:textColor="@color/nexus_text_secondary"
+        android:textSize="@dimen/text_size_label"
+        android:letterSpacing="0.05"
+        app:layout_constraintBottom_toTopOf="@+id/etPassphrase"
+        app:layout_constraintStart_toStartOf="@+id/etPassphrase"
+        app:layout_constraintTop_toBottomOf="@+id/etIdentity" />
+
+    <EditText
+        android:id="@+id/etPassphrase"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/input_height"
+        android:layout_marginHorizontal="@dimen/margin_large"
+        android:background="@drawable/bg_nexus_input"
+        android:hint="@string/hint_passphrase"
+        android:inputType="textPassword"
+        android:paddingHorizontal="20dp"
+        android:textColor="@color/nexus_text_primary"
+        android:textColorHint="@color/nexus_text_secondary"
+        android:textSize="@dimen/text_size_input"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/lblPassphrase" />
+
+    <!-- Action Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAuthenticate"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/input_height"
+        android:layout_marginHorizontal="@dimen/margin_large"
+        android:layout_marginTop="64dp"
+        android:backgroundTint="@color/nexus_accent"
+        android:text="@string/btn_authenticate"
+        android:textColor="@color/black"
+        android:textSize="@dimen/text_size_button"
+        android:textStyle="bold"
+        android:letterSpacing="0.05"
+        app:cornerRadius="@dimen/button_corner_radius"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/etPassphrase" />
+
+    <!-- Forgot Credentials -->
+    <TextView
+        android:id="@+id/tvForgot"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_large"
+        android:text="@string/forgot_credentials"
+        android:textColor="@color/nexus_text_secondary"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnAuthenticate" />
+
+    <!-- Footer -->
+    <TextView
+        android:id="@+id/tvFooter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="48dp"
+        android:text="@string/footer_secure"
+        android:textColor="@color/nexus_text_secondary"
+        android:textSize="@dimen/text_size_footer"
+        android:fontFamily="monospace"
+        android:letterSpacing="0.1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

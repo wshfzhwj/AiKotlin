@@ -1,7 +1,5 @@
 package com.example.aikotlin.ui.login
 
-// Please read docs/ai/skill.md and project-context.md before answering.
-
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -27,7 +25,6 @@ import com.example.aikotlin.viewmodel.LoginUiEvent
 import com.example.aikotlin.viewmodel.LoginUiState
 import com.example.aikotlin.viewmodel.LoginViewModel
 
-// 根据AGENTS.md，如果应用全局使用Hilt，Activity应该标记为AndroidEntryPoint
 class LoginActivity : AppCompatActivity() {
 
     private val viewModel: LoginViewModel by viewModels { ViewModelFactory(this) }

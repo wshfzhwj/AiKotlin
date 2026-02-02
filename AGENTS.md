@@ -47,7 +47,7 @@ ViewModel 编写： 使用 StateFlow 暴露 UI 状态，使用 SharedFlow 处理
 性能核查： 检查是否有主线程耗时操作，是否正确使用了 viewModelScope。
 
 5. 常用代码模板片段 (Prompt Trigger)
-   当我说 "Create Feature [X]" 时：
+   当我说 "创建 [X] 模块" 时：
 
 生成 fragment_x.xml (ConstraintLayout)。
 
@@ -66,3 +66,5 @@ ViewModel 编写： 使用 StateFlow 暴露 UI 状态，使用 SharedFlow 处理
 尽量不要使用过时的api 如onBackPressed()，使用 OnBackPressedDispatcher。
 按照应用强制需求 如Edge-to-Edge “在生成的 XML 布局中处理 WindowInsets，确保不被刘海屏遮挡。
 
+#每次任务第一句：
+Please read .agent/skills/ and project-context.md before answering.

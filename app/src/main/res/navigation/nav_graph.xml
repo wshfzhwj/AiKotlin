@@ -5,6 +5,13 @@
     android:id="@+id/nav_graph"
     app:startDestination="@id/nav_home">
 
+    <!-- 商城Fragment -->
+    <fragment
+        android:id="@+id/nav_mall"
+        android:name="com.example.aikotlin.ui.mall.MallFragment"
+        android:label="商城"
+        tools:layout="@layout/fragment_mall" />
+
     <!-- 视频Fragment -->
     <fragment
         android:id="@+id/nav_video"

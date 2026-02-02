@@ -12,3 +12,4 @@ local.properties
 /buildSrc/.gradle
 /.vscode/
 /.kotlin/
+/jd_design/

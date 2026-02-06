@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -18,6 +19,7 @@ class MallAdapter : ListAdapter<MallItem, RecyclerView.ViewHolder>(MallDiffCallb
         const val TYPE_CATEGORY_GRID = 1
         const val TYPE_SECKILL = 2
         const val TYPE_PRODUCT_CARD = 3
+        const val TYPE_LOADING_MORE = 4
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -26,6 +28,7 @@ class MallAdapter : ListAdapter<MallItem, RecyclerView.ViewHolder>(MallDiffCallb
             is MallItem.CategoryGrid -> TYPE_CATEGORY_GRID
             is MallItem.Seckill -> TYPE_SECKILL
             is MallItem.ProductCard -> TYPE_PRODUCT_CARD
+            is MallItem.LoadingMore -> TYPE_LOADING_MORE
         }
     }
 
@@ -36,17 +39,28 @@ class MallAdapter : ListAdapter<MallItem, RecyclerView.ViewHolder>(MallDiffCallb
             TYPE_CATEGORY_GRID -> CategoryGridViewHolder(ItemMallCategoryGridBinding.inflate(inflater, parent, false))
             TYPE_SECKILL -> SeckillViewHolder(ItemMallSeckillBinding.inflate(inflater, parent, false))
             TYPE_PRODUCT_CARD -> ProductViewHolder(ItemMallProductCardBinding.inflate(inflater, parent, false))
+            TYPE_LOADING_MORE -> LoadingMoreViewHolder(ItemLoadingMoreBinding.inflate(inflater, parent, false))
             else -> throw IllegalArgumentException("Invalid view type")
         }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        // Set full span for non-product items
+        val layoutParams = holder.itemView.layoutParams
+        if (layoutParams is StaggeredGridLayoutManager.LayoutParams) {
+            layoutParams.isFullSpan = when (getItemViewType(position)) {
+                TYPE_PRODUCT_CARD -> false
+                else -> true
+            }
+        }
+
         val item = getItem(position)
         when (holder) {
             is BannerViewHolder -> holder.bind((item as MallItem.Banner).banners)
             is CategoryGridViewHolder -> holder.bind((item as MallItem.CategoryGrid).categories)
             is SeckillViewHolder -> holder.bind((item as MallItem.Seckill).products)
             is ProductViewHolder -> holder.bind((item as MallItem.ProductCard).product)
+            is LoadingMoreViewHolder -> { /* No binding needed */ }
         }
     }
 
@@ -79,11 +93,13 @@ class MallAdapter : ListAdapter<MallItem, RecyclerView.ViewHolder>(MallDiffCallb
             binding.ivProduct.load(product.imageUrl)
             binding.tvBrand.text = product.brand
             binding.tvName.text = product.name
-            binding.tvPrice.text = "$${product.price}"
+            binding.tvPrice.text = "¥${product.price}"
             binding.tvTag.text = product.tags.firstOrNull() ?: ""
             binding.tvTag.visibility = if (product.tags.isNotEmpty()) android.view.View.VISIBLE else android.view.View.GONE
         }
     }
+
+    class LoadingMoreViewHolder(binding: ItemLoadingMoreBinding) : RecyclerView.ViewHolder(binding.root)
 }
 
 sealed class MallItem {
@@ -91,6 +107,7 @@ sealed class MallItem {
     data class CategoryGrid(val categories: List<MallCategory>) : MallItem()
     data class Seckill(val products: List<SeckillProduct>) : MallItem()
     data class ProductCard(val product: MallProduct) : MallItem()
+    object LoadingMore : MallItem()
 }
 
 class MallDiffCallback : DiffUtil.ItemCallback<MallItem>() {
@@ -136,8 +153,8 @@ class SeckillProductAdapter : ListAdapter<SeckillProduct, SeckillProductAdapter.
     class ViewHolder(private val binding: ItemMallSeckillProductBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(product: SeckillProduct) {
             binding.ivProduct.load(product.imageUrl)
-            binding.tvPrice.text = "$${product.price}"
-            binding.tvOriginalPrice.text = "$${product.originalPrice}"
+            binding.tvPrice.text = "¥${product.price}"
+            binding.tvOriginalPrice.text = "¥${product.originalPrice}"
             binding.tvOriginalPrice.paintFlags = binding.tvOriginalPrice.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
         }
     }

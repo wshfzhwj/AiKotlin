@@ -69,19 +69,26 @@
         app:layout_constraintTop_toTopOf="@id/iv_menu"
         app:tint="@color/white" />
 
-    <!-- Main Content List -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_mall_content"
+    <!-- Main Content List with SwipeRefreshLayout -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
-        android:clipToPadding="false"
-        android:paddingBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/ll_search_bar"
-        tools:listitem="@layout/item_mall_product_card" />
+        app:layout_constraintTop_toBottomOf="@id/ll_search_bar">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_mall_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="16dp"
+            tools:listitem="@layout/item_mall_product_card" />
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <!-- Loading Overlay -->
     <ProgressBar

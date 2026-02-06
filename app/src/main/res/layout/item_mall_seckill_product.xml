@@ -36,7 +36,6 @@
         android:layout_height="wrap_content"
         android:text="$19.99"
         android:textColor="#999999"
-        android:textSize="10sp"
-        android:foreground="@drawable/ic_launcher_background" /> <!-- Placeholder for strike-through if needed, but usually done via PaintFlags -->
+        android:textSize="10sp" /> <!-- Placeholder for strike-through if needed, but usually done via PaintFlags -->
 
 </LinearLayout>
